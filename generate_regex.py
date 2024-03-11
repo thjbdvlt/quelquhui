@@ -1,4 +1,10 @@
 import fr
+from typing import NamedTuple
+import re
+# import itertools
+
+
+Token = NamedTuple("Token", text=str, isspace=bool, frozen=bool)
 
 
 class Tokenizer:
@@ -6,11 +12,14 @@ class Tokenizer:
     chars = fr.chars
     words = fr.words
 
+    regex_url = r"(https?://\S+|www\.\S+|@?mailto:\S+)"
+    onspacesplitter = re.compile(r"(\s+)")
+
     def __init__(
         self,
-        abbrev: list[str],
-        inclusive: bool,
-        url: bool,
+        abbrev: list[str] = [],
+        inclusive: bool = True,
+        url: bool = True,
     ):
         self.abbrev = abbrev
         self.inclusive = inclusive
@@ -18,9 +27,9 @@ class Tokenizer:
 
     def _update_words(self) -> None:
         """format regex words with hyphen and apostrophe"""
-
-        hyphen = self.chars.punct.HYPHEN
-        apostrophe = self.chars.punct.APOSTROPHE
+        p = self.chars.punct
+        hyphen = p.HYPHEN
+        apostrophe = p.APOSTROPHE
         self.words.inversion.INVERSION = [
             i.format(hyphen=hyphen, apostrophe=apostrophe)
             for i in self.words.inversion.INVERSION
@@ -30,7 +39,7 @@ class Tokenizer:
             for i in self.words.elision.ELISION
         ]
 
-    def gen_regex_hyphen(self):
+    def _genregex_hyphen(self):
         """match hyphen if preceded by letter and followed by registered word"""
         hyphen = self.chars.punct.HYPHEN
         words = self.words.inversion.INVERSION
@@ -39,28 +48,23 @@ class Tokenizer:
         lookbehind = r"(?<=[^\W\d])"
         return rf"{lookbehind}[{hyphen}]({words_agg})"
 
-    def gen_regex_apostrophe(self):
+    def _genregex_apostrophe(self):
         """match apostrophe if preceded by registered word."""
         words = self.words.elision.ELISION
         apostrophe = self.chars.punct.APOSTROPHE
         words_agg = r"|".join(words)
         return rf"\b({words_agg})[{apostrophe}]"
 
-    def gen_regex_between_digit(self):
-        """match comma/slash if not between two digits"""
-        punct = self.chars.punct.COMMA + self.chars.punct.SLASH
-        groupname = "comma"
-        lookbehind = rf"(?<=(?P<{groupname}>\d)|\D)"
-        lookahead = rf"(?=(?({groupname})\D|.))"
-        return rf"{lookbehind}{punct}{lookahead}"
+    def _genregex_digitpunct(self):
+        """match digits and punctuation that needs to be frozen."""
+        p = self.chars.punct
+        punct = p.COMMA + p.PERIOD + p.SLASH
+        return fr'\d+[{punct}]\d+'
 
-    def gen_regex_parenthese(self) -> (str, str):
-        """match parenthese if corresponding parenthese is not inside the same string"""
-        parentheses = (
-            self.chars.punct.PARENTHESES,
-            self.chars.punct.BRACKETS,
-            self.chars.punct.BRACES,
-        )
+    def _genregex_inword_parenthese(self) -> (str, str):
+        """match inside-word parenthese that must be frozen"""
+        p = self.chars.punct
+        parentheses = (p.PARENTHESES, p.BRACKETS, p.BRACES)
         letter = self.chars.alpha.letter
         opening = []
         closing = []
@@ -76,18 +80,27 @@ class Tokenizer:
             )
         return r"|".join(opening), r"|".join(closing)
 
-    def gen_regex_period_abbrev(self) -> str:
-        """match period if preceded by single letter and not followed by letter"""
+    def _genregex_abbrev_singleletter(self) -> str:
+        """match single letter abbreviations"""
         period = self.chars.punct.PERIOD
         letter = self.chars.alpha.LETTER
         return rf"\b[{letter}]{period}(?![{letter}])"
 
-    def gen_regex_period_digit(self) -> str:
-        """match period if between digit and letter"""
+    def _genregex_abbrev_long(self) -> str:
+        """match abbreviations"""
         period = self.chars.punct.PERIOD
         letter = self.chars.alpha.LETTER
-        apostrophe = self.chars.punct.APOSTROPHE
-        hyphen = self.chars.punct.HYPHEN
+        abbrev = self.abbrev
+        abbrev = r"|".join([rf"({i})" for i in abbrev])
+        return rf"\b({abbrev}){period}(?![{letter}])"
+
+    def _genregex_period_digit(self) -> str:
+        """match period if between digit and letter"""
+        p = self.chars.punct
+        period = p.PERIOD
+        apostrophe = p.APOSTROPHE
+        hyphen = p.HYPHEN
+        letter = self.chars.alpha.LETTER
         letters = rf"[{letter}][{letter}{apostrophe}{hyphen}]"
         regexes = [
             rf"(?<=\d){period}(?={letters})",
@@ -95,7 +108,7 @@ class Tokenizer:
         ]
         return r"|".join(regexes)
 
-    def gen_regex_period_suffix_inclusive(self):
+    def _genregex_inclusive(self):
         """match period if not used as inclusive language sign.
 
         match cases like:
@@ -110,14 +123,12 @@ class Tokenizer:
             - enseignant.sère (plural suff. cannot precedes feminine suff.)
         """
         period = self.chars.punct.PERIOD
-        feminine = self.words.inclusive.FEMININE
-        non_binary = self.words.inclusive.NON_BINARY
-        plural = self.words.inclusive.PLURAL
+        s = self.words.inclusive
 
         # join all forms for each suffix groups.
-        f = r"|".join(feminine)
-        x = r"|".join(non_binary)
-        s = r"|".join(plural)
+        f = r"|".join(s.FEMININE)
+        x = r"|".join(s.NON_BINARY)
+        s = r"|".join(s.PLURAL)
 
         # what must be before period. it's here only because else, other regexes wont be used.
         lookbehind = r"(?<=\D)"
@@ -136,13 +147,13 @@ class Tokenizer:
 
         return rf"{lookbehind}{period}(?!{firstsuffix}(?={if_group_then})){lookahead}"
 
-    def gen_regex_period_start(self) -> str:
+    def _genregex_period_start(self) -> str:
         """match a period at the start of a string if followed by 2 letters"""
         period = self.chars.punct.PERIOD
         letter = self.chars.alpha.LETTER
         return rf"^({period}+)(?=([{letter}]{{2}})|[^{letter}])"
 
-    def gen_regex_end_sentence(self):
+    def _genregex_end_sentence(self):
         """match any number of .?!
 
         the purpose of this regex is to keep as a single token cases like:
@@ -154,7 +165,7 @@ class Tokenizer:
         endpunct = rf"[{p.PERIOD + p.QUESTION + p.EXCLAM}]"
         return rf"^{endpunct}+"
 
-    def gen_regex_infix_unconditionnal(self):
+    def _genregex_infix_unconditionnal(self):
         """match not-word (\\W) chars that doesn't need specific processing."""
         p = self.chars.punct
         exclude = (
@@ -170,7 +181,7 @@ class Tokenizer:
         )
         return rf"[^\s\w{exclude}]"
 
-    def gen_regex_prefix_unconditionnal(self):
+    def _genregex_prefix_unconditionnal(self):
         """match not-word (\\W) chars that doesn't need specific processing."""
         p = self.chars.punct
         exclude = (
@@ -183,7 +194,7 @@ class Tokenizer:
         )
         return rf"^[^\s\w{exclude}]"
 
-    def gen_regex_reverse_suffix_unconditionnal(self):
+    def _genregex_reverse_suffix_unconditionnal(self):
         """match not-word (\\W) chars that doesn't need specific processing."""
         p = self.chars.punct
         exclude = (
@@ -194,3 +205,39 @@ class Tokenizer:
             + p.EXCLAM
         )
         return rf"^[^\s\w{exclude}]"
+
+    # faire les regexes et les aggréger.
+    def _aggregex_freeze(self):
+        regex_freeze = []
+        if self.url is True:
+            regex_freeze.append(self.regex_url)
+        if self.inclusive is True:
+            regex_inclusive = self._genregex_inclusive()
+            regex_freeze.append(regex_inclusive)
+        regex_freeze = [rf"({i})" for i in regex_freeze]
+        regex_freeze = r"|".join(regex_freeze)
+        self.re_freeze = re.compile(regex_freeze)
+        return None
+
+    # ci-dessous: les fonctions qui split
+
+    def _splitonspace(self, text: str):
+        s = self.onspacesplitter.split(text)
+        return [
+            Token(text=i[0], isspace=i[1], frozen=False)
+            for i in zip(s, [False, True] * len(s))
+        ]
+
+    def _splitfrozen(self, a: list[Token]):
+        b = []
+        r = self.re_freeze
+        for i in a:
+            if i.isspace:
+                b.append(i)
+            else:
+                s = list(r(i.text))
+                b.extend([
+                    Token(text=i[0], isspace=False, frozen=i[1])
+                    for i in zip([], [False, True] * len(s))
+                ])
+        return b
