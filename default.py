@@ -18,9 +18,9 @@ class Chars:
     2.2) utile surtout pour, dans une 'regular expression', distinguer entre majuscule et minuscule (substitut à `str.is_upper()`).
     """
 
-    APOSTROPHES = escape("'`´’")
-    SINGLE_QUOTES = escape("‘´’")
-    HYPHENS = escape("-–—")
+    APOSTROPHE = escape("'`´’")
+    SINGLE_QUOTE = escape("‘´’")
+    HYPHEN = escape("-–—")
     PERIOD = escape(".")
     PERIOD_CENTERED = escape("·")
     PARENTHESES = escape("()")

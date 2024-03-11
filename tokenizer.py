@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import re
-import texts
-import default
+from quelquhui import default
 
 
 @dataclass
@@ -20,13 +19,8 @@ class Token:
 
 
 class Tokenizer:
-    def __init__(
-        self, abbrev, re_splitspace, re_splitpunct, re_freeze
-    ):
+    def __init__(self, abbrev):
         self.abbrev = abbrev
-        self.re_splitpunct = re_splitpunct
-        self.re_splitspace = re_splitspace
-        self.re_freeze = re_freeze
 
     def tokenize(self, text):
         re_splitspace = self.re_splitspace
@@ -44,14 +38,19 @@ class Tokenizer:
             if substring.isspace is True:
                 doc.append(substring)
             else:
+
                 puncts = re_splitpunct(substring.text)
+
                 s = []
                 for i in puncts:
                     s.extend([i.start(), i.end()])
                 s = set(s)
+
                 frozen = re_freeze(substring.text)
+
                 for i in frozen:
                     s.difference_update(range(i.start(), i.end() + 1))
+
                 if len(s) == 0:
                     doc.append(substring)
                 else:
@@ -67,28 +66,7 @@ class Tokenizer:
         return doc
 
 
-regex_url = r"(?:\w+://|www\.)[\S]+[\w/]"
-regex_incl = r"\.(?=e\b|ice\b|x\b|es\b|s\b)"
-regex_apos = r"((?:c|n|j|t|m|s)')"
-regex_hyphen = r"((?:c|n|j|t|m|s)')"
-regex_freeze = r"|".join([rf"({i})" for i in [regex_url, regex_incl]])
-re_freeze = re.compile(regex_freeze).finditer
-re_punct = re.compile(r"([^\w'-])" + r"|" + regex_apos).finditer
-re_splitspace = re.compile(r"(\s+)").split
-
-text = texts.apostrophes
-nlp = Tokenizer(
-    abbrev=[],
-    re_splitspace=re_splitspace,
-    re_freeze=re_freeze,
-    re_splitpunct=re_punct,
-)
-doc = nlp.tokenize(text)
-"".join([i.text for i in doc]) == text
-print("\n".join([i.text for i in doc]))
-
-
-class RegexMaker:
+class FrenchTokenizer(Tokenizer):
     re_splitspace = re.compile(r"(\s+)").split
     regex_url = r"(?:\w+://|www\.)[\S]+[\w/]"
 
@@ -105,6 +83,7 @@ class RegexMaker:
         self.inclusive = inclusive
         self.chars = chars
         self.words = words
+        self.makeregexes()
 
     def _update_words(self) -> None:
         """format regex words with hyphen and apostrophe"""
@@ -140,24 +119,36 @@ class RegexMaker:
         """match digits and punctuation that needs to be frozen."""
         c = self.chars
         punct = c.COMMA + c.PERIOD + c.SLASH
-        return rf"\d+[{punct}]\d+"
+        return rf"(?<=\d)[{punct}](?=\d)"
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
         c = self.chars
-        parentheses = (c.PARENTHESES, c.BRACKETS, c.BRACES)
-        pattern = r"(?<=\w)\{l}\w+\{r}|\{l}\w+\{r}(?=\w)"
-        a = [
-            pattern.format(l=left, r=right)
-            for left, right in parentheses
-        ]
-        return r"|".join(a)
+        a = rf"[{self.chars.ALPHA}-]"
+        parentheses = (
+            c.PARENTHESES.replace("\\", ""),
+            c.BRACKETS.replace("\\", ""),
+            c.BRACES.replace("\\", ""),
+        )
+        regexes = []
+        for left, right in parentheses:
+            left = "\\" + left
+            right = "\\" + right
+            # leftpattern = rf"(?<={a}){left}{a}+{right}"
+            # leftpattern = rf"(?<={a}){left}{a}+{right}"
+            leftpattern = rf"(?<={a}){left}{a}+(?={right})"
+            # rightpattern = rf"{left}{a}+{right}(?={a})"
+            rightpattern = rf"{left}{a}+{right}(?={a})"
+            pattern = r"|".join([leftpattern, rightpattern])
+            regexes.append(pattern)
+        return r"|".join(regexes)
 
     def _genregex_abbrev_singleletter(self) -> str:
         """match single letter abbreviations"""
         c = self.chars
         period = c.PERIOD
         letter = c.ALPHA
+        # return rf"\b[{letter}]{period}"
         return rf"\b[{letter}]{period}"
 
     def _genregex_abbrevmultipleletters(self) -> str:
@@ -203,6 +194,7 @@ class RegexMaker:
         # aggregate the 'come after' groups
         if_group_then = rf"(?(f){if_f}|(?(x){if_x}|{if_s}))"
 
+        # return rf"{period}({firstsuffix}(?={if_group_then}))"
         return rf"{period}(?={firstsuffix}(?={if_group_then}))"
 
     def _genregex_end_sentence(self):
@@ -224,39 +216,41 @@ class RegexMaker:
     def _genregex_hyphenboundary(self):
         """match punctuation that need to be taken away from token if it is not in a word."""
         c = self.chars
-        p = fr"[^\s\w{c.PARENTHESES + c.BRACES + c.BRACKETS}]"
+        p = rf"[^\s\w{c.PARENTHESES + c.BRACES + c.BRACKETS}]"
         return rf"^{p}|\W{p}|{p}\W|{p}$"
 
     def _genregex_splitpunct(self):
         """punctuation that usually split"""
         c = self.chars
-        exclude = (
-            c.PERIOD_CENTERED
-            + c.HYPHENS
-            + c.APOSTROPHES
-        )
-        return rf"[^\s\w{exclude}]"
+        exclude = c.PERIOD_CENTERED + c.HYPHEN + c.APOSTROPHE
+        return rf"(?:[^\s\w{exclude}])"
 
     def _aggregex_freeze(self):
-        regex_freeze = [self._genregex_digitpunct(), self._genregex_inword_parenthese(), self._genregex_abbrev_singleletter()]
+        regex_freeze = [
+            self._genregex_digitpunct(),
+            self._genregex_inword_parenthese(),
+            # self._genregex_abbrev_singleletter(),  # arg ici souci!!
+        ]
         if self.url is True:
             regex_freeze.append(self.regex_url)
         if self.inclusive is True:
             regex_inclusive = self._genregex_inclusive()
             regex_freeze.append(regex_inclusive)
         if self.abbrev is not None and len(self.abbrev) > 0:
-            regex_freeze.append(self._genregex_abbrevmultipleletters())
+            regex_freeze.append(
+                self._genregex_abbrevmultipleletters()
+            )
         regex_freeze = [rf"(?:{i})" for i in regex_freeze]
         regex_freeze = r"|".join(regex_freeze)
         self.re_freeze = re.compile(regex_freeze).finditer
 
     def _aggregex_split(self):
         regexes = [
-            self._genregex_end_sentence(),
+            # self._genregex_end_sentence(),
             self._genregex_hypheninversion(),
             self._genregex_apostrophe(),
             self._genregex_hyphenboundary(),
-            self._genregex_splitpunct()
+            self._genregex_splitpunct(),
         ]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
         self.re_splitpunct = re.compile(regexes).finditer
