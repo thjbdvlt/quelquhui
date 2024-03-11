@@ -4,44 +4,6 @@ import texts
 import default
 
 
-def _genregex_inclusive(self):
-    """match period used for inclusive language.
-
-    match cases like:
-        - enseignant.e
-        - enseignant.e.s
-        - enseignant.es
-        - enseignant.x.e.s
-        - enseignant.xères
-        - enseignant.exs
-        - enseignant.eusexs
-    but not:
-        - enseignant.esdepuis ("depuis" isn't a registered suffix)
-        - enseignant.sère (plural suff. does not precede feminine suff.)
-    """
-
-    period = self.Chars.PERIOD
-    w = self.Words
-
-    # join all forms for each suffix groups.
-    f = r"|".join(w.SUFF_FEMININE)
-    x = r"|".join(w.SUFF_NONBINARY)
-    w = r"|".join(w.SUFF_PLURAL)
-
-    # create named captures groups, so what can come after period depends on what came before..
-    firstsuffix = rf"((?P<x>{x})|(?P<f>{f})|(?P<s>{w}))"
-
-    # for each group, defining what can follow (word+feminine+plural is ok, but not word+plural+feminine, non-binary can be anywhere.).
-    if_f = rf"({x}|{w}|\b)"
-    if_x = rf"({f}|{w}|\b)"
-    if_s = rf"({x}|\b)"
-
-    # aggregate the 'come after' groups
-    if_group_then = rf"(?(f){if_f}|(?(x){if_x}|{if_s}))"
-
-    return rf"{period}(?={firstsuffix}(?={if_group_then}))"
-
-
 @dataclass
 class Token:
     text: str
@@ -158,21 +120,21 @@ class RegexMaker:
             for i in self.words.ELISION
         ]
 
-    def _genregex_hyphen(self):
+    def _genregex_hypheninversion(self):
         """match hyphen if preceded by letter and followed by registered word"""
         hyphen = self.chars.HYPHEN
         words = self.words.INVERSION
         words = [rf"\b{i}\b" for i in words]
         words_agg = r"|".join(words)
         lookbehind = r"(?<=[^\W\d])"
-        return rf"{lookbehind}[{hyphen}]({words_agg})"
+        return rf"{lookbehind}[{hyphen}](?:{words_agg})"
 
     def _genregex_apostrophe(self):
         """match apostrophe if preceded by registered word."""
         words = self.words.ELISION
         apostrophe = self.chars.APOSTROPHE
         words_agg = r"|".join(words)
-        return rf"\b({words_agg})[{apostrophe}]"
+        return rf"\b(?:{words_agg})[{apostrophe}]"
 
     def _genregex_digitpunct(self):
         """match digits and punctuation that needs to be frozen."""
@@ -203,7 +165,7 @@ class RegexMaker:
         c = self.chars
         period = c.PERIOD
         abbrev = self.abbrev
-        abbrev = r"|".join([rf"({i})" for i in abbrev])
+        abbrev = r"|".join([rf"(?:{i})" for i in abbrev])
         return rf"\b({abbrev}){period}"
 
     def _genregex_inclusive(self):
@@ -243,12 +205,6 @@ class RegexMaker:
 
         return rf"{period}(?={firstsuffix}(?={if_group_then}))"
 
-    def _genregex_period_start(self) -> str:
-        """match a period at the start of a string if followed by 2 letters"""
-        period = self.chars.PERIOD
-        letter = self.chars.ALPHA
-        return rf"^({period}+)(?=([{letter}]{{2}})|[^{letter}])"
-
     def _genregex_end_sentence(self):
         """match any number of .?!
 
@@ -256,61 +212,56 @@ class RegexMaker:
             - ..?
             - ?!
             - !!!
+        as it's focused on everyday use of punctuation: it excludes other pattern such as:
+            - :.
+            - ,-!
+        which are not used (as far as i know).
         """
         c = self.chars
         endpunct = rf"[{c.PERIOD + c.QUESTION + c.EXCLAM}]"
-        return rf"^{endpunct}+"
+        return rf"{endpunct}+"
 
-    def _genregex_infix_unconditionnal(self):
-        """match not-word (\\W) chars that doesn't need specific processing."""
+    def _genregex_hyphenboundary(self):
+        """match punctuation that need to be taken away from token if it is not in a word."""
+        c = self.chars
+        p = fr"[^\s\w{c.PARENTHESES + c.BRACES + c.BRACKETS}]"
+        return rf"^{p}|\W{p}|{p}\W|{p}$"
+
+    def _genregex_splitpunct(self):
+        """punctuation that usually split"""
         c = self.chars
         exclude = (
-            c.PERIOD
-            + c.PERIOD_CENTERED
-            + c.PARENTHESES
+            c.PERIOD_CENTERED
             + c.HYPHENS
-            + c.BRACKETS
-            + c.BRACES
             + c.APOSTROPHES
-            + c.COMMA
-            + c.SLASH
         )
         return rf"[^\s\w{exclude}]"
 
-    def _genregex_prefix_unconditionnal(self):
-        """match not-word (\\W) chars that doesn't need specific processing."""
-        c = self.chars.punct
-        exclude = (
-            c.BRACES
-            + c.BRACKETS
-            + c.PARENTHESES
-            + c.APOSTROPHES
-            + c.QUESTION
-            + c.EXCLAM
-        )
-        return rf"^[^\s\w{exclude}]"
-
-    def _genregex_reverse_suffix_unconditionnal(self):
-        """match not-word (\\W) chars that doesn't need specific processing."""
-        c = self.chars.punct
-        exclude = (
-            c.BRACES
-            + c.BRACKETS
-            + c.PARENTHESES
-            + c.QUESTION
-            + c.EXCLAM
-        )
-        return rf"^[^\s\w{exclude}]"
-
-    # faire les regexes et les aggréger.
     def _aggregex_freeze(self):
-        regex_freeze = []
+        regex_freeze = [self._genregex_digitpunct(), self._genregex_inword_parenthese(), self._genregex_abbrev_singleletter()]
         if self.url is True:
             regex_freeze.append(self.regex_url)
         if self.inclusive is True:
             regex_inclusive = self._genregex_inclusive()
             regex_freeze.append(regex_inclusive)
-        regex_freeze = [rf"({i})" for i in regex_freeze]
+        if self.abbrev is not None and len(self.abbrev) > 0:
+            regex_freeze.append(self._genregex_abbrevmultipleletters())
+        regex_freeze = [rf"(?:{i})" for i in regex_freeze]
         regex_freeze = r"|".join(regex_freeze)
-        self.re_freeze = re.compile(regex_freeze)
-        return None
+        self.re_freeze = re.compile(regex_freeze).finditer
+
+    def _aggregex_split(self):
+        regexes = [
+            self._genregex_end_sentence(),
+            self._genregex_hypheninversion(),
+            self._genregex_apostrophe(),
+            self._genregex_hyphenboundary(),
+            self._genregex_splitpunct()
+        ]
+        regexes = r"|".join([rf"(?:{i})" for i in regexes])
+        self.re_splitpunct = re.compile(regexes).finditer
+
+    def makeregexes(self):
+        self._update_words()
+        self._aggregex_freeze()
+        self._aggregex_split()
