@@ -5,6 +5,7 @@ from quelquhui import default
 
 @dataclass
 class Token:
+    """a little piece of text."""
     text: str
     isspace: bool
 
@@ -19,6 +20,8 @@ class Token:
 
 
 class Tokenizer:
+    """can be used to tokenize texts."""
+
     def __init__(self, abbrev):
         self.abbrev = abbrev
 
@@ -27,7 +30,6 @@ class Tokenizer:
         re_splitspace = self.re_splitspace
         re_freeze = self.re_freeze
         re_splitpunct = self.re_splitpunct
-        # split on spaces. and mark all spaces as spaces.
         spacesplitted = re_splitspace(text)
         spacesplitted = [
             Token(text=i[0], isspace=i[1])
@@ -46,7 +48,7 @@ class Tokenizer:
             if substring.isspace is True:
                 doc.append(substring)
             else:
-                # get positions of punctuation sign that might split tokens.
+                # get positions of punctuation signs that might split tokens.
                 puncts = re_splitpunct(substring.text)
                 s = set().union(
                     *[(i.start(), i.end()) for i in puncts]
@@ -127,15 +129,12 @@ class FrenchTokenizer(Tokenizer):
         """match digits and punctuation that needs to be frozen."""
         c = self.chars
         punct = c.COMMA + c.PERIOD + c.SLASH
-        # return rf"(?<=\d)[{punct}](?=\d)"
-        # return rf"(?<=\d)[{punct}](?=\d)"
         return rf"\d[{punct}]\d"
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
         c = self.chars
-        # a = rf"[{self.chars.ALPHA}\-]"
-        a = rf"[{self.chars.ALPHA}]"
+        a = rf"[{self.chars.ALPHA}-]"
         parentheses = (
             c.PARENTHESES.replace("\\", ""),
             c.BRACKETS.replace("\\", ""),
@@ -145,12 +144,8 @@ class FrenchTokenizer(Tokenizer):
         for left, right in parentheses:
             left = "\\" + left
             right = "\\" + right
-            # leftpattern = rf"(?<={a}){left}{a}+(?={right})"
-            # rightpattern = rf"{left}{a}+{right}(?={a})"
-            # leftpattern = rf"((?<={a}){left}{a}+({right}))"
             leftpattern = rf"((?<={a}){left}{a}+{right}){a}*"
-            rightpattern = "-----"
-            # rightpattern = rf"({left}{a}+{right}({a}))"
+            rightpattern = rf"((?<={left}){a}+{right}({a}))"
             pattern = r"|".join([leftpattern, rightpattern])
             regexes.append(pattern)
         return r"|".join(regexes)
@@ -158,10 +153,10 @@ class FrenchTokenizer(Tokenizer):
     def _genregex_abbrev_singleletter(self) -> str:
         """match single letter abbreviations"""
         c = self.chars
-        return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])"
+        return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
 
     def _genregex_abbrevmultipleletters(self) -> str:
-        """match abbreviations"""
+        """match longer abbreviations"""
         c = self.chars
         period = c.PERIOD
         abbrev = self.abbrev
@@ -222,11 +217,11 @@ class FrenchTokenizer(Tokenizer):
         endpunct = rf"[{c.PERIOD + c.QUESTION + c.EXCLAM}]"
         return rf"{endpunct}+"
 
-    def _genregex_hyphenboundary(self):
-        """match punctuation that need to be taken away from token if it is not in a word."""
-        c = self.chars
-        p = rf"[^\s\w{c.PARENTHESES + c.BRACES + c.BRACKETS}]"
-        return rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
+    # def _genregex_hyphenboundary(self):
+    #     """match punctuation that need to be taken away from token if it is not in a word."""
+    #     c = self.chars
+    #     p = rf"[^\s\w{c.PARENTHESES + c.BRACES + c.BRACKETS}]"
+    #     return rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
 
     def _genregex_splitpunct(self):
         """punctuation that usually split"""
@@ -257,7 +252,7 @@ class FrenchTokenizer(Tokenizer):
             self._genregex_end_sentence(),
             self._genregex_hypheninversion(),
             self._genregex_apostrophe(),
-            self._genregex_hyphenboundary(),
+            # self._genregex_hyphenboundary(),
             self._genregex_splitpunct(),
         ]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
