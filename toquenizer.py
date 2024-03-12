@@ -4,9 +4,11 @@ from dataclasses import dataclass
 @dataclass
 class Toquen:
     """a little piece of text."""
+
     text: str
-    isspace: bool
-    trailingspace: str = None
+    trailingspace: str = ""
+    isspace: bool = False
+    idx: int = None
 
     def __str__(self):
         return self.text
@@ -16,6 +18,17 @@ class Toquen:
 
     def __len__(self):
         return len(self.text)
+
+
+@dataclass
+class Doqu:
+    words = list[Toquen]
+
+    @property
+    def text(self):
+        return "".join(
+            ["".join([i.text, i.trailingspace]) for i in self.words]
+        )
 
 
 class Toquenizer:
@@ -36,16 +49,23 @@ class Toquenizer:
                 spacesplitted, [False, True] * len(spacesplitted)
             )
         ]
-        # remove empty token at start and ends, if there are some (which is the case when first or last string is a space).
-        if len(spacesplitted) > 0 and spacesplitted[0].text == "":
-            spacesplitted = spacesplitted[1:]
-        if len(spacesplitted) > 0 and spacesplitted[-1].text == "":
+
+        # # remove empty token at start and ends, if there are some (which is the case when first or last string is a space).
+        # if len(spacesplitted) > 0 and spacesplitted[0].text == "" and spacesplitted[1].trailingspace == "":
+        #     spacesplitted = spacesplitted[1:]
+        if (
+            len(spacesplitted) > 0
+            and spacesplitted[-1].text == ""
+            and spacesplitted[1].trailingspace == ""
+        ):
             spacesplitted = spacesplitted[:-1]
+
         # initiate a document, in which tokens will be put.
         doc = []
         for substring in spacesplitted:
-            if substring.isspace is True:
-                doc.append(substring)
+            # if substring.isspace is True:
+            if substring.isspace is True and substring.text != "\n":
+                doc[-1].trailingspace = substring.text
             else:
                 # get positions of punctuation signs that might split tokens.
                 puncts = re_splitpunct(substring.text)
@@ -61,8 +81,7 @@ class Toquenizer:
                     # if no split-punct remains, append substring as-is
                     doc.append(substring)
                 else:
-                    # else, add all parts one after the other.
-                    # add 0 and len(substring.text) to ensure all text is kept.
+                    # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
                     s.update([0, len(substring.text)])
                     x = sorted(s)
                     for n, i in enumerate(x[:-1]):
@@ -72,6 +91,11 @@ class Toquenizer:
                                 isspace=False,
                             )
                         )
+        # add property Toquen.idx
+        n = 0
+        for i in doc:
+            i.idx = n
+            n += len(i.text) + len(i.trailingspace)
         return doc
 
     def __call__(self, text):
