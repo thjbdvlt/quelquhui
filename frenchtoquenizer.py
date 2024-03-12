@@ -4,8 +4,6 @@ import re
 
 
 class FrenchToquenizer(Toquenizer):
-    re_splitspace = re.compile(r"(\s+)").split
-    regex_url = r"(?:\w+://|www\.)[\S]+[\w/]"
 
     def __init__(
         self,
@@ -14,12 +12,18 @@ class FrenchToquenizer(Toquenizer):
         inclusive: bool = True,
         chars: Chars = Chars,
         words: Words = Words,
+        regexspace: str = r"([ \t]+)",
+        regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]"
+
     ):
         self.abbrev = abbrev
         self.url = url
         self.inclusive = inclusive
         self.chars = chars
         self.words = words
+        # self.re_splitspace = re.compile(regexspace).split
+        self.re_splitspace = re.compile(regexspace).split
+        self.regex_url = regexurl
         self.makeregexes()
 
     def _update_words(self) -> None:
@@ -148,7 +152,7 @@ class FrenchToquenizer(Toquenizer):
         """punctuation that usually split and punctuation that only split on boundaries."""
         c = self.chars
         e = c.PERIOD_CENTERED + c.HYPHEN + c.APOSTROPHE
-        splitanywhere = rf"[^\s\w{e}]"
+        splitanywhere = rf"[^\w{e}]"
         p = rf"[{e}]"
         splitboundary = rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
         return r"|".join([splitanywhere, splitboundary])

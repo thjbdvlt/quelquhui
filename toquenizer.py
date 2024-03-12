@@ -3,100 +3,101 @@ from dataclasses import dataclass
 
 @dataclass
 class Toquen:
-    """a little piece of text."""
+    """a little piece of text"""
 
     text: str
     trailingspace: str = ""
-    isspace: bool = False
     idx: int = None
 
     def __str__(self):
-        return self.text
+        return self.text + self.trailingspace
 
     def __repr__(self):
         return self.text
 
     def __len__(self):
-        return len(self.text)
+        return len(self.text) + len(self.trailingspace)
 
 
 @dataclass
-class Doqu:
-    words = list[Toquen]
+class Doqument:
+    """a split text, with method to output in few formats"""
+
+    words: list[Toquen]
+    text: str
 
     @property
     def text(self):
-        return "".join(
-            ["".join([i.text, i.trailingspace]) for i in self.words]
-        )
+        return "".join([str(i) for i in self.words])
+
+    def __getitem__(self, i):
+        return self.words[i]
 
 
 class Toquenizer:
-    """can be used to tokenize texts."""
+    """tokenize texts."""
 
     def __init__(self, abbrev):
+        """only one argument: context-specific abbreviations."""
         self.abbrev = abbrev
 
     def toquenize(self, text):
         """split a text into tokens."""
+        # three functions that do the job by freezing and splitting.
         re_splitspace = self.re_splitspace
         re_freeze = self.re_freeze
         re_splitpunct = self.re_splitpunct
+        # split on space
         spacesplitted = re_splitspace(text)
+        # mark spaces as space, so they will be processed specifically.
         spacesplitted = [
-            Toquen(text=i[0], isspace=i[1])
+            (i[0], i[1])
             for i in zip(
                 spacesplitted, [False, True] * len(spacesplitted)
             )
         ]
-
-        # # remove empty token at start and ends, if there are some (which is the case when first or last string is a space).
-        # if len(spacesplitted) > 0 and spacesplitted[0].text == "" and spacesplitted[1].trailingspace == "":
-        #     spacesplitted = spacesplitted[1:]
-        if (
-            len(spacesplitted) > 0
-            and spacesplitted[-1].text == ""
-            and spacesplitted[1].trailingspace == ""
-        ):
-            spacesplitted = spacesplitted[:-1]
-
         # initiate a document, in which tokens will be put.
         doc = []
-        for substring in spacesplitted:
-            # if substring.isspace is True:
-            if substring.isspace is True and substring.text != "\n":
-                doc[-1].trailingspace = substring.text
+        for substring, isspace in spacesplitted:
+            if isspace is True:
+                doc[-1].trailingspace = substring
+                substring = substring
             else:
                 # get positions of punctuation signs that might split tokens.
-                puncts = re_splitpunct(substring.text)
+                puncts = re_splitpunct(substring)
                 s = set().union(
                     *[(i.start(), i.end()) for i in puncts]
                 )
                 # and remove from these numerical positions those which are marked as 'frozen' (exception).
-                frozen = re_freeze(substring.text)
+                frozen = re_freeze(substring)
                 s.difference_update(
                     *[range(i.start(), i.end()) for i in frozen]
                 )
                 if len(s) == 0:
                     # if no split-punct remains, append substring as-is
-                    doc.append(substring)
+                    doc.append(Toquen(text=substring))
                 else:
                     # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
-                    s.update([0, len(substring.text)])
+                    s.update([0, len(substring)])
                     x = sorted(s)
                     for n, i in enumerate(x[:-1]):
                         doc.append(
-                            Toquen(
-                                text=substring.text[i : x[n + 1]],
-                                isspace=False,
-                            )
+                            Toquen(text=substring[i : x[n + 1]])
                         )
+        # remove empty token at end, if there are some (which is the case when first or last string is a space). i don't remove them at start, because if there is one, it's because the first character is a space, so it would be attach as the trailing space of the empty initial character.
+        if (
+            len(doc) > 0
+            and doc[-1].text == ""
+            and doc[-1].trailingspace == ""
+        ):
+            doc = doc[:-1]
+
         # add property Toquen.idx
         n = 0
         for i in doc:
             i.idx = n
             n += len(i.text) + len(i.trailingspace)
-        return doc
+        return Doqument(words=doc, text=text)
 
     def __call__(self, text):
         return self.toquenize(text)
