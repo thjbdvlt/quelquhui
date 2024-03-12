@@ -1,9 +1,9 @@
-from quelquhui.tokenizer import Tokenizer
+from quelquhui.toquenizer import Toquenizer
 from quelquhui.default import Chars, Words
 import re
 
 
-class FrenchTokenizer(Tokenizer):
+class FrenchToquenizer(Toquenizer):
     re_splitspace = re.compile(r"(\s+)").split
     regex_url = r"(?:\w+://|www\.)[\S]+[\w/]"
 
@@ -176,7 +176,6 @@ class FrenchTokenizer(Tokenizer):
             self._genregex_end_sentence(),
             self._genregex_hypheninversion(),
             self._genregex_apostrophe(),
-            self._genregex_hyphenboundary(),
             self._genregex_splitpunct(),
         ]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])

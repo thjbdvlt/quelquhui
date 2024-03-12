@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-import re
-from quelquhui import default
 
 
 @dataclass
-class Token:
+class Toquen:
     """a little piece of text."""
     text: str
     isspace: bool
+    trailingspace: str = None
 
     def __str__(self):
         return self.text
@@ -19,20 +18,20 @@ class Token:
         return len(self.text)
 
 
-class Tokenizer:
+class Toquenizer:
     """can be used to tokenize texts."""
 
     def __init__(self, abbrev):
         self.abbrev = abbrev
 
-    def tokenize(self, text):
+    def toquenize(self, text):
         """split a text into tokens."""
         re_splitspace = self.re_splitspace
         re_freeze = self.re_freeze
         re_splitpunct = self.re_splitpunct
         spacesplitted = re_splitspace(text)
         spacesplitted = [
-            Token(text=i[0], isspace=i[1])
+            Toquen(text=i[0], isspace=i[1])
             for i in zip(
                 spacesplitted, [False, True] * len(spacesplitted)
             )
@@ -68,7 +67,7 @@ class Tokenizer:
                     x = sorted(s)
                     for n, i in enumerate(x[:-1]):
                         doc.append(
-                            Token(
+                            Toquen(
                                 text=substring.text[i : x[n + 1]],
                                 isspace=False,
                             )
@@ -76,4 +75,4 @@ class Tokenizer:
         return doc
 
     def __call__(self, text):
-        return self.tokenize(text)
+        return self.toquenize(text)
