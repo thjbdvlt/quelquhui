@@ -30,8 +30,7 @@ class Doqument:
         # if original text isn't submitted: rebuild it
         self.text = text if text is not None else self.gettext()
 
-        # add property Toquen.idx (char_start)
-        # and property i
+        # add property Toquen.idx (char_start) and property i
         idx = 0
         for i, word in enumerate(self.toquens):
             word.i = i
@@ -45,25 +44,7 @@ class Doqument:
         """a list of all token text. spaces are skipped."""
         return [i.text for i in self.toquens]
 
-    def __str__(self):
-        return self.text
-
-    def __repr__(self):
-        return f'[{" ".join([i.text for i in self.toquens])}]'
-
-    def __getitem__(self, i):
-        return self.toquens[i]
-
-    def toflatlist(self):
-        """a list of all words and spaces."""
-        a = [(i.text, i.trspace) for i in self.toquens]
-        return [c for b in a for c in b]
-
-    def tospacedeli(self):
-        """return all toquen.text separated by a ' '."""
-        return " ".join([i.text for i in self.toquens])
-
-    def tojson(self, skipspace: bool = False, **kwargs):
+    def tojson(self, **kwargs):
         """output in json format.
 
         kwargs are given to json.dumps()
@@ -75,15 +56,13 @@ class Doqument:
         if "ensure_ascii" not in kwargs:
             kwargs["ensure_ascii"] = False
 
-        if skipspace is True:
-
-            def toquentojson(t: Toquen):
-                return {"text": t.text, "i": t.i, "idx": t.startchar}
-
-        else:
-
-            def toquentojson(t: Toquen):
-                return t.__dict__
+        def toquentojson(t: Toquen):
+            # doesn't print Toquen.text as it's already in the Doqument.text
+            return {
+                "id": t.i,
+                "startchar": t.startchar,
+                "endchar": t.endchar,
+            }
 
         return json.dumps(
             obj={
@@ -92,6 +71,45 @@ class Doqument:
             },
             **kwargs,
         )
+
+    def tospacy(self, vocab, **kwargs):
+        """words and spaces to initiate a spacy.Doc"""
+
+        from spacy.tokens import Doc
+
+        words = []
+        spaces = []
+        for i in self.toquens:
+            if i.trspace == "":
+                words.append(i.text)
+                spaces.append(False)
+            elif i.trspace == " ":
+                words.append(i.text)
+                spaces.append(True)
+            elif i.trspace.startswith(" "):
+                words.extend([i.text, i.trspace[1:]])
+                spaces.extend([True, False])
+            else:
+                words.extend([i.text, i.trspace])
+                spaces.extend([False, False])
+        return Doc(vocab=vocab, words=words, spaces=spaces, **kwargs)
+
+    def toflatlist(self):
+        """a list of all words and spaces."""
+        a = [(i.text, i.trspace) for i in self.toquens]
+        return [c for b in a for c in b]
+
+    def __str__(self):
+        return self.text
+
+    def __repr__(self):
+        return f'[{" ".join([i.text for i in self.toquens])}]'
+
+    def __getitem__(self, i):
+        return self.toquens[i]
+
+    def __len__(self):
+        return len(self.toquens)
 
     def gettext(self):
         """original text, rebuilt from toquens"""
