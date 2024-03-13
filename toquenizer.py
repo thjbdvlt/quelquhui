@@ -1,37 +1,4 @@
-from dataclasses import dataclass
-
-
-@dataclass
-class Toquen:
-    """a little piece of text"""
-
-    text: str
-    trailingspace: str = ""
-    idx: int = None
-
-    def __str__(self):
-        return self.text + self.trailingspace
-
-    def __repr__(self):
-        return self.text
-
-    def __len__(self):
-        return len(self.text) + len(self.trailingspace)
-
-
-@dataclass
-class Doqument:
-    """a split text, with method to output in few formats"""
-
-    words: list[Toquen]
-    text: str
-
-    @property
-    def text(self):
-        return "".join([str(i) for i in self.words])
-
-    def __getitem__(self, i):
-        return self.words[i]
+from quelquhui.doqument import Toquen, Doqument
 
 
 class Toquenizer:
@@ -60,7 +27,7 @@ class Toquenizer:
         doc = []
         for substring, isspace in spacesplitted:
             if isspace is True:
-                doc[-1].trailingspace = substring
+                doc[-1].trspace = substring
                 substring = substring
             else:
                 # get positions of punctuation signs that might split tokens.
@@ -88,15 +55,9 @@ class Toquenizer:
         if (
             len(doc) > 0
             and doc[-1].text == ""
-            and doc[-1].trailingspace == ""
+            and doc[-1].trspace == ""
         ):
             doc = doc[:-1]
-
-        # add property Toquen.idx
-        n = 0
-        for i in doc:
-            i.idx = n
-            n += len(i.text) + len(i.trailingspace)
         return Doqument(words=doc, text=text)
 
     def __call__(self, text):
