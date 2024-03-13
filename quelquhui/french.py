@@ -13,7 +13,8 @@ class FrenchToquenizer(Toquenizer):
         chars: Chars = Chars,
         words: Words = Words,
         regexspace: str = r"([ \t]+)",
-        regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]"
+        regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]",
+        tospacy: bool = False
 
     ):
         self.abbrev = abbrev
@@ -22,6 +23,7 @@ class FrenchToquenizer(Toquenizer):
         self.chars = chars
         self.words = words
         self.re_splitspace = re.compile(regexspace).split
+        self.re_splitspacystyle = re.compile('(?<=[^ ]) ').split
         self.regex_url = regexurl
         self.makeregexes()
 
