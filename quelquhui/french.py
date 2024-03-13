@@ -1,9 +1,8 @@
-from quelquhui.toquenizer import Toquenizer
 from quelquhui.default import Chars, Words
 import re
 
 
-class FrenchToquenizer(Toquenizer):
+class French:
 
     def __init__(
         self,
@@ -14,8 +13,6 @@ class FrenchToquenizer(Toquenizer):
         words: Words = Words,
         regexspace: str = r"([ \t]+)",
         regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]",
-        tospacy: bool = False
-
     ):
         self.abbrev = abbrev
         self.url = url
@@ -23,7 +20,6 @@ class FrenchToquenizer(Toquenizer):
         self.chars = chars
         self.words = words
         self.re_splitspace = re.compile(regexspace).split
-        self.re_splitspacystyle = re.compile('(?<=[^ ]) ').split
         self.regex_url = regexurl
         self.makeregexes()
 
