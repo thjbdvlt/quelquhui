@@ -6,19 +6,19 @@ tokenizer for contemporary french.
 | text              | tokens                    |
 |-------------------|---------------------------|
 | autre(s)          | `autre(s)`                |
-| (autres)          | `(`, `autres`, `)`        |
-| (autre(s))        | `(`, `autre(s)`, `)`      |
-| mais.maintenant   | `mais`, `.`, `maintenant` |
+| (autres)          | `(` `autres` `)`        |
+| (autre(s))        | `(` `autre(s)` `)`      |
+| mais.maintenant   | `mais` `.` `maintenant` |
 | auteur.rice.s     | `auteur.rice.s`           |
-| p.10              | `p.`, `10`                |
+| p.10              | `p.` `10`                |
 | www.birdsong.com. | `www.birdsong.com`, `.`   |
-| oui..?            | `oui`, `..?`              |
-| peut-on           | `peut`, `-on`             |
+| oui..?            | `oui` `..?`              |
+| peut-on           | `peut` `-on`             |
 | Merlin-sur-mer    | `Merlin-sur-mer`          |
-| prends-les        | `prends`, `-les`          |
+| prends-les        | `prends` `-les`          |
 | Villar-le-bois    | `Villar-le-bois`          |
 | aujourd'hui       | `aujourd'hui`             |
-| c'est             | `c'`, `est`               |
+| c'est             | `c'` `est`                |
 
 usage
 -----
