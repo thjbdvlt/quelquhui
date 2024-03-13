@@ -4,9 +4,10 @@ from quelquhui.doqument import Toquen, Doqument
 class Toquenizer:
     """tokenize texts."""
 
-    def __init__(self, abbrev):
+    def __init__(self, abbrev, vocab=None):
         """only one argument: context-specific abbreviations."""
         self.abbrev = abbrev
+        self.vocab = vocab
 
     def toquenize(self, text):
         """split a text into tokens."""
@@ -14,6 +15,7 @@ class Toquenizer:
         re_splitspace = self.re_splitspace
         re_freeze = self.re_freeze
         re_splitpunct = self.re_splitpunct
+
         # split on space
         spacesplitted = re_splitspace(text)
         # mark spaces as space, so they will be processed specifically.
@@ -28,7 +30,6 @@ class Toquenizer:
         for substring, isspace in spacesplitted:
             if isspace is True:
                 doc[-1].trspace = substring
-                substring = substring
             else:
                 # get positions of punctuation signs that might split tokens.
                 puncts = re_splitpunct(substring)
@@ -62,3 +63,7 @@ class Toquenizer:
 
     def __call__(self, text):
         return self.toquenize(text)
+
+    def spacytokenize(self, text):
+        self.regexspace = r'(?<=[^ ])( )'
+        self._method = 'spacy'
