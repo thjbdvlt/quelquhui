@@ -21,6 +21,7 @@ tokenizer for contemporary french.
 | c'est                   | `c'` `est`                  |
 | dedans/dehors           | `dedans` `/` `dehors`       |
 | 02/10/2024              | `02/10/2024`                |
+| :-)                     | `:-)`                       |
 
 usage
 -----

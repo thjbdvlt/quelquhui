@@ -221,7 +221,7 @@ class French:
         # - between string boundaries and space
         start = r"(?:^|(?<=\s))"
         end = r"(?:$|(?=\s))"
-        regexemoticon = start + anyemoticon + end
+        regexemoticon = fr"(?:{start}(?:{anyemoticon}){end})"
 
         return regexemoticon
 
