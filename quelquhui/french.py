@@ -53,10 +53,9 @@ class French:
         """match hyphen if preceded by letter and followed by registered word"""
         hyphen = self.chars.HYPHEN
         words = self.words.INVERSION
-        words = [rf"\b{i}\b" for i in words]
         words_agg = r"|".join(words)
         lookbehind = r"(?<=[^\W\d])"
-        return rf"{lookbehind}[{hyphen}](?:{words_agg})"
+        return rf"{lookbehind}[{hyphen}]\b(?:{words_agg})\b"
 
     def _genregex_apostrophe(self):
         """match apostrophe if preceded by registered word."""
