@@ -9,7 +9,8 @@ tokenizer for contemporary french.
 | (autres)                | `(` `autres` `)`            |
 | (autre(s))              | `(` `autre(s)` `)`          |
 | mais.maintenant         | `mais` `.` `maintenant`     |
-| auteur.rice.s           | `auteur.rice.s`             |
+| relecteur.rice.s        | `relecteur.rice.s`          |
+| 10.2                    | `10.2`                      |
 | p.10                    | `p.` `10`                   |
 | peut-on                 | `peut` `-on`                |
 | www<area/>.on-tenk.com. | `www.on-tenk.com` `.`       |
@@ -18,6 +19,8 @@ tokenizer for contemporary french.
 | Villar-les-bois         | `Villar-les-bois`           |
 | aujourd'hui             | `aujourd'hui`               |
 | c'est                   | `c'` `est`                  |
+| dedans/dehors           | `dedans` `/` `dehors`       |
+| 02/10/2024              | `02/10/2024`                |
 
 usage
 -----
@@ -38,6 +41,7 @@ without spacy:
 import quelquhui
 
 qh = quelquhui.Toquenizer(method='quelquhui')
+doc = qh("la machine à (b)rouiller le temps s'est peut-être dérailler...")
 ```
 
 very few options can be set to modify the tokenizer behavior:
@@ -47,15 +51,27 @@ import quelquhui
 
 qh = quelquhui.Toquenizer(
     abbrev = ["ref", "ed[s]"], # support regex
-    inclusive = True,  # default: handle inclusive language.
-    url = True, # default: handle urls.
-    regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]", # default
+    inclusive = True, # default
+    url = True, # default
+    regexurl = r"(?:\w+://|www\.)[\S]+[\w/]", # default
+    chars = {
+        "APOSTROPHE": "'`´’" # default
+        "HYPHEN": "-–—",  # default
+        # signs you'll set here will replace defaults.
+        # other won't be change.
+        # complete list and default can be found with
+        # `quelquhui.default.Chars.__dict__`
+    }
+    words = {
+        "ELISION": ["j", "s", "c"], # ...
+        "INVERSION": ["je", "tu", "on"], # ...
+        "SUFF_FEMININE": ["e", "rice", "ère"], # ...
+        "SUFF_NONBINARY": ["x"],
+        "SUFF_PLURAL": ["s", "x"],
+        # there only these 5. but default lists are longer.
+    }
 )
 ```
-
-1. abbreviations can be added (default tokenizer only manages single-letter abbreviations; others are considered to be context/domain-specific).
-2. it's possible to add (regex) patterns to preserve these patterns from being split.
-3. characters to be recognized (?) as `HYPHEN`, `APOSTROPHE` (or anything else) can be changed.
 
 why don't i just stick to spaCy's tokenizer ?
 ---------------------------------------------

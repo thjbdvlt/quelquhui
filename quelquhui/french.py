@@ -9,18 +9,26 @@ class French:
         abbrev: list[str] = [],
         url: bool = True,
         inclusive: bool = True,
-        chars: Chars = Chars,
-        words: Words = Words,
+        chars: dict = [],
+        words: dict = [],
         regexspace: str = r"([ \t]+)",
         regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]",
     ):
         self.abbrev = abbrev
         self.url = url
         self.inclusive = inclusive
-        self.chars = chars
-        self.words = words
+
+        self.chars = Chars
+        self.words = Words
+
+        for i in chars:
+            setattr(self.chars, i, chars[i])
+        for i in words:
+            setattr(self.words, i, words[i])
+
         self.re_splitspace = re.compile(regexspace).split
         self.regex_url = regexurl
+
         self.makeregexes()
 
     def _update_words(self) -> None:
