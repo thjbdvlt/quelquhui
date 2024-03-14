@@ -25,7 +25,7 @@ class QQSpacyToquenizer:
         #    2.1 find characters to split on.
         #    2.2 find characters found in 2.1 but not to split on.
         #    2.3 split on 2.1 - 2.2
-        re_splitspace = re.compile(r"(?<=[^ ]) ").split
+        re_splitspace = self.re_splitspace
         re_freeze = self.re_freeze
         re_splitpunct = self.re_splitpunct
         # split on spaces
