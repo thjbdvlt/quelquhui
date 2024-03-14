@@ -82,9 +82,9 @@ the _quelquhui_ version of the tokenizer aims to be as minimal as possible. it o
 ```python
 import quelquhui
 qh = quelquhui.Toquenizer(method='quelquhui')
-qh("et les autres autrent")
+qh("et les autres  autrent")
 
-[(0, 2), (3, 6), (7, 13), (14, 21)]
+[(0, 2), (3, 6), (7, 13), (15, 22)]
 ```
 
 
