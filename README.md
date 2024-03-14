@@ -33,8 +33,6 @@ import spacy
 
 nlp = spacy.load('fr_core_news_sm')
 nlp.tokenizer = quelquhui.Toquenizer(nlp.vocab)
-# and then, as you would do with any spacy pipeline, e.g. nlp.pipe, ...
-# (if you omit 'vocab', then an empty one will be initiated.)
 ```
 
 use as a independant tokenizer:
@@ -54,8 +52,10 @@ import quelquhui
 qh = quelquhui.Toquenizer(
     abbrev = ["ref", "ed[s]"], # support regex
     inclusive = True, # default
+    emoticon = True, # default
     url = True, # default
     regexurl = r"(?:\w+://|www\.)[\S]+[\w/]", # default
+    regexemoticon = r":-?[\)\(]", # (default one is too long to be reproduced here.)
     chars = {
         "APOSTROPHE": "'`´’" # default
         "HYPHEN": "-–—",  # default

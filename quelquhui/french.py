@@ -7,16 +7,19 @@ class French:
     def __init__(
         self,
         abbrev: list[str] = [],
-        url: bool = True,
         inclusive: bool = True,
+        emoticon: bool = True,
+        url: bool = True,
         chars: dict = [],
         words: dict = [],
         regexspace: str = r"([ \t]+)",
         regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]",
+        regexemoticon: str = None,
     ):
         self.abbrev = abbrev
         self.url = url
         self.inclusive = inclusive
+        self.emoticon = emoticon
 
         self.chars = Chars
         self.words = Words
@@ -28,6 +31,7 @@ class French:
 
         self.re_splitspace = re.compile(regexspace).split
         self.regex_url = regexurl
+        self.regexemoticon = None
 
         self.makeregexes()
 
@@ -168,17 +172,59 @@ class French:
             self._genregex_digitpunct(),
             self._genregex_inword_parenthese(),
         ]
+
         if self.url is True:
             regex_freeze.append(self.regex_url)
+
         if self.inclusive is True:
             regex_inclusive = self._genregex_inclusive()
             regex_freeze.append(regex_inclusive)
+
         if self.abbrev is not None and len(self.abbrev) > 0:
             regex_freeze.append(
                 self._genregex_abbrevmultipleletters()
             )
+
+        if self.emoticon is True:
+            if self.regexemoticon is not None:
+                regex_freeze.append(self.regexemoticon)
+            else:
+                regex_freeze.append(self._genregex_emoticons())
+
         regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
         self.re_freeze = re.compile(regex_freeze, re.I).finditer
+
+    def _genregex_emoticons(self):
+        # :-)
+        # D-;
+        # >:^)
+        eyebrowsleft = r">?"
+        eyebrowsright = r"<?"
+        eyes = r"[\:=;8x]'?"
+        nose = r"[-o\^]?"
+        mouth = r"[\(\)\]\[\}\{\}dp0o/31\*\|\>x]+"
+        sideleft = eyebrowsleft + eyes + nose + mouth
+        sideright = mouth + nose + eyes + eyebrowsright
+
+        # o.O
+        facemouth = r"(?:\.|_+)"
+        faceeyes = [r"[oO0@]", r"[vV]", r"\.", r"-", r";", r"\^", r"[<>]"]
+        facesemoticons = [i + facemouth + i for i in faceeyes]
+
+        # any emoticons (face / side)
+        anyemoticon = r"|".join(
+            [rf"(?:{i})" for i in [sideright, sideleft] + facesemoticons]
+        )
+
+        # match emoticon only if they are:
+        # - between two spaces
+        # - between string boundaries
+        # - between string boundaries and space
+        start = r"(?:^|(?<=\s))"
+        end = r"(?:$|(?=\s))"
+        regexemoticon = start + anyemoticon + end
+
+        return regexemoticon
 
     def _aggregex_split(self):
         regexes = [
@@ -187,6 +233,7 @@ class French:
             self._genregex_apostrophe(),
             self._genregex_splitpunct(),
         ]
+        regexes = [i for i in regexes if i is not None]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
         self.re_splitpunct = re.compile(regexes, re.I).finditer
 
