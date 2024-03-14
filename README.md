@@ -15,7 +15,7 @@ tokenizer for contemporary french.
 | www<area/>.on-tenk.com. | `www.on-tenk.com` `.`    |
 | oui..?            | `oui` `..?`               |
 | prends-les        | `prends` `-les`           |
-| Villar-les-bois    | `Villar-les-bois`          |
+| Villar-les-bois   | `Villar-les-bois`         |
 | aujourd'hui       | `aujourd'hui`             |
 | c'est             | `c'` `est`                |
 
@@ -51,10 +51,11 @@ why don't i just stick to spaCy's tokenizer ?
 
 i wrote this tokenizer because spaCy's french tokenizer currently (2024-03-12) has (to me) two issues:
 
-1. it doesn't manage `-` correctly and uses for that a very long list (15630) of exceptions (probably automatically generated) which is not only gigantic (full of proper names such as "Minaucourt-le-Mesnil-lès-Hurlus"), but also very incomplete, because it's a list of words containing a `-` that must not be split into many tokens. i feel like it's the wrong way, because words containing `-` that must be kept as a single token are virtually infinite in french: proper names (villages, people) and inclusive forms ("auteur-rice"). it results in an inconsistent and non-comprehensive tokenizer: "quelques-uns" will be one token while "quelques-unes" will be 3 tokens ("quelques", "-", "unes") because it's not in the huge list. i feel like it's more practical to use as a rule not to split on "-" (this sign is called in french "trait d'union" -- _union trait_ --, it _unifies_), and as special cases the situations where it must split. because these cases, if they are more frequent, are also much less diverse: they all consists in verb-subject inversions where subject is a pronoun or one of a few adverb list, for a total of 21 words. a small regex and all the 15000 and many more are easily handled.
+1. it doesn't manage hyphen correctly and uses for that a very long list (15630) of exceptions (probably automatically generated) which is not only gigantic (full of proper names such as _Minaucourt-le-Mesnil-lès-Hurlus_), but also very incomplete, because it's a list of words containing a hyphen that must not be split into many tokens. i feel like it's the wrong way, because words containing hyphen that must be kept as a single token are virtually infinite in french: proper names (villages, people) and inclusive forms (_auteur-rice_). hence, the list has no change to be exhaustive. it results in an inconsistent tokenizer: _quelques-uns_ will be one token while _quelques-unes_ will be 3 tokens (_quelques_, _-_, _unes_) because it's not in the huge list. i feel like it's more practical to use as a rule not to split on hyphen (this sign is called in french _trait d'union_ -- _union trait_ --, it _unifies_), and as special cases the situations where it must split. because these cases, if they are more frequent, are also much less diverse: as said above, they all consists in verb-subject inversions where subject is a pronoun or one of a few adverb list, for a total of 21 words. a small regex and each of the 15000 and many more are easily handled.
 2. it doesn't manage correctly in-word parentheses, such as "(post)digital" or "quelque(s) personne(s)", producing results like `personne(s`, `)` where the opening parenthesis is a part of the token and the closing parethesis is another token.
 
 dependencies
 ------------
 
 only `python3` and `re` builtin library.
+optionally: `spacy`.
