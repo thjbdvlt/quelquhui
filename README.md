@@ -38,12 +38,15 @@ how it works
 
 1. _split text on spaces._ spaces are defines by default as `[ \t]+`. newlines are not included because in many contexts they act not only as word separator but also as strong punctuation mark: they end sentences.
 2. for each word:
-    1. _localise characters on which words must be split_. typically: punctuation marks, such as comma or period. let's say they are then considered _boundaries_.
-    2. _localise characters that must be kept together, even if they have been marked in step 2.i_.
-    3. split on remainings splitting characters (2.i - 2.ii).
+    1. _list characters on which words must be split_. typically: punctuation marks, such as comma or period. let's say they are then considered _boundaries_.
+    2. _list characters that must be kept together, even if they have been marked in step 2.i_.
+    3. remove 2.i from 2.ii, and split on remainings splitting characters.
 
-__example__: as most periods must (?) result in splitting a substring into many (rule rather than exception), in step 2.1 all `.` are marked as _boundaries_. exceptions such as inclusive language ("auteur.rice") or abbreviations ("p. 10") are removed from the _boundaries_ list in step 2.2. (?)(PEUTETRE AJOUTE UN POINT PUISQUE PAS DE MAJUSCULE) 
+### example
 
+in most cases, period is a token boundary: a final period (ending a sentenc) obviously isn't part of the word. but in some cases, the period actually is a part of the word (abbreviations: "p.10"), and in some other cases, the period and the letters following it must be kept in the token (inclusive language: "auteur.rice.s"). these are exceptions, hence they are handled in 2.ii. the pattern in 2.i will be: `\.` (match period wherever it is, without any condition), while the pattern in 2.ii could be (if simplified) `(?<=[^a-z][a-z])\.|\.(?=rice|s)` (match period if preceded by a single letter or followed by "rice" or "s".
+
+in most cases, hyphens are not token boundary: they are a sign that two word are actually one word, such as in "Vaison-la-romaine". but in some cases, they 
 for hyphens (`-`) it's the opposite, because in most cases, hyphen must (?) not result in splitting a substring into many words. so while in 2.1 the regex for period is `\.` (match dots wherever they are), the regex for hyphen is conditionnal (thus more complex): a hyphen is marked as a _boundary_ if and only if it's a case of verb-subject inversion (identified by the presence of a personnal pronoun, or a few other things).
 
 why don't i just stick to spaCy's tokenizer ?
