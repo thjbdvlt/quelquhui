@@ -11,7 +11,7 @@ tokenizer for contemporary french.
 | mais.maintenant   | `mais` `.` `maintenant`   |
 | auteur.rice.s     | `auteur.rice.s`           |
 | p.10              | `p.` `10`                 |
-| www.on<area/>-tenk.com. | `www.on-tenk.com` `.`    |
+| www<area/>.on-tenk.com. | `www.on-tenk.com` `.`    |
 | oui..?            | `oui` `..?`               |
 | prends-les        | `prends` `-les`           |
 | Villar-le-bois    | `Villar-le-bois`          |
