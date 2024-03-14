@@ -15,7 +15,7 @@ tokenizer for contemporary french.
 | www<area/>.on-tenk.com. | `www.on-tenk.com` `.`    |
 | oui..?            | `oui` `..?`               |
 | prends-les        | `prends` `-les`           |
-| Villar-le-bois    | `Villar-le-bois`          |
+| Villar-les-bois    | `Villar-les-bois`          |
 | aujourd'hui       | `aujourd'hui`             |
 | c'est             | `c'` `est`                |
 
