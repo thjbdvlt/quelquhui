@@ -11,10 +11,8 @@ tokenizer for contemporary french.
 | mais.maintenant   | `mais` `.` `maintenant`   |
 | auteur.rice.s     | `auteur.rice.s`           |
 | p.10              | `p.` `10`                 |
-| www.birdsong.com. | `www.birdsong.com` `.`    |
+| www.on-tenk.com. | `www.on-tenk.com` `.`    |
 | oui..?            | `oui` `..?`               |
-| peut-on           | `peut` `-on`              |
-| Merlin-sur-mer    | `Merlin-sur-mer`          |
 | prends-les        | `prends` `-les`           |
 | Villar-le-bois    | `Villar-le-bois`          |
 | aujourd'hui       | `aujourd'hui`             |
