@@ -90,13 +90,13 @@ how it works
 
 1. _split text on spaces._
 2. for each resulting substring:
-    1. _list characters on which words must be split_. typically: punctuation marks, such as comma or period. let's say they are then considered _token boundaries_.
-    2. _list characters that must be kept together, even if they have been listed in step 2.i_.
-    3. remove 2.i from 2.ii, and split on remainings splitting characters.
+    1. *list characters on which words must be split*. typically: punctuation marks, such as comma or period. let's say they are then considered *token boundaries*.
+    2. *list characters that must be kept together, even if they have been listed in step __2.i__*.
+    3. remove __2.i__ from __2.ii__, and split on remainings splitting characters.
 
-in most cases, a period is a token boundary: a final period (ending a sentenc) obviously isn't part of the word. but in some cases, the period actually is a part of the word (abbreviations: _p.10_), and in some other cases, the period and the letters following it must be kept in the token (inclusive language: _auteur.rice.s_). these are exceptions, hence they are handled in 2.ii: i remove them from periods found in 2.i. the pattern in 2.i will be: `\.` (match period wherever it is, without any condition), while the pattern in 2.ii could be (if simplified) `(?<=[^a-z][a-z])\.|\.(?=rice|s)` (match period if preceded by a single letter or followed by _rice_ or _s_).
+in most cases, a period is a token from the word it follows: a period ending a sentence obviously isn't part of the word it follows. but in some  cases, a period actually is a part of a word (abbreviations: _p.10_), and in some other cases, the period _and the letters following it_ must be kept in the token (inclusive language: _auteur.rice.s_). these cases are exceptions, hence they are handled in __2.ii__: i remove them from periods found in 2.i. the pattern in __2.i__ will be: `\.` (match period wherever it is, without any condition), while the pattern in __2.ii__ could be (if simplified) `(?<=[^a-z][a-z])\.|\.(?=rice|s)` (match period if preceded by a single letter or followed by _rice_ or _s_).
 
-in most cases, a hyphen isn't a token boundary, because in french the hyphen is a sign that says "these two words are actually one word", such as in _Vaison-la-romaine_. but in some cases, they don't: in case of verb-subject inversion (mostly). these cases are easily described and handled with a regular expression, because subjects in these cases are always personnal pronoums: `-(?=je|tu|...`. there are also a few cases where the following word is not a pronominalized subject, but a pronominalized object, such as _prends-les_, with is also easily handled in a regular expression. hence, the pattern for hyphen in 2.i is not (as for period) unconditional and simple, but rather complex and conditional (match hyphen if followed by pronominalized subject or object).
+in most cases, a hyphen isn't a token boundary, because in french the hyphen is a sign that says "these two words are actually one word", such as in _Vaison-la-romaine_. but in some cases, they don't: in case of verb-subject inversion (mostly). these cases are easily described and handled with a regular expression, because subjects in these cases are always personnal pronoums: `-(?=je|tu|...`. there are also a few cases where the following word is not a pronominalized subject, but a pronominalized object, such as _prends-les_, with is also easily handled in a regular expression. hence, the pattern for hyphen in __2.i__ is not (as for period) unconditional and simple, but rather complex and conditional (match hyphen if followed by pronominalized subject or object).
 
 dependencies
 ------------

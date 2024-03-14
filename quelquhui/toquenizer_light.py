@@ -52,9 +52,8 @@ class Doqument:
 
         import json
 
-        # set default value for 'ensure_ascii' to False
-        if "ensure_ascii" not in kwargs:
-            kwargs["ensure_ascii"] = False
+        opts = {"ensure_ascii": False, "indent": 2}
+        opts.update(kwargs)
 
         def toquentojson(t: Toquen):
             # doesn't print Toquen.text as it's already in the Doqument.text
@@ -69,7 +68,7 @@ class Doqument:
                 "words": [toquentojson(t) for t in self.toquens],
                 "text": self.text,
             },
-            **kwargs,
+            **opts,
         )
 
     def toflatlist(self):
