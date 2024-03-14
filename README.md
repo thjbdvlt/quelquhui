@@ -22,12 +22,36 @@ tokenizer for contemporary french.
 usage
 -----
 
-...
+with spacy:
 
-configuration
--------------
+```python
+import quelquhui
+import spacy
+
+nlp = spacy.load('fr_core_news_sm')
+nlp.tokenizer = quelquhui.Toquenizer(nlp.vocab)
+```
+
+without spacy:
+
+```python
+import quelquhui
+
+qh = quelquhui.Toquenizer(method='quelquhui')
+```
 
 very few options can be set to modify the tokenizer behavior:
+
+```python
+import quelquhui
+
+qh = quelquhui.Toquenizer(
+    abbrev = ["ref", "ed[s]"], # support regex
+    inclusive = True,  # default: handle inclusive language.
+    url = True, # default: handle urls.
+    regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]", # default
+)
+```
 
 1. abbreviations can be added (default tokenizer only manages single-letter abbreviations; others are considered to be context/domain-specific).
 2. it's possible to add (regex) patterns to preserve these patterns from being split.
