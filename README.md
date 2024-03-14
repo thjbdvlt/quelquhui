@@ -36,10 +36,10 @@ very few options can be set to modify the tokenizer behavior:
 how it works
 ------------
 
-1. _split text on spaces._ spaces are defines by default as `[ \t]+`. newlines are not included because in many contexts they act not only as word separator but also as strong punctuation mark: they end sentences.
-2. for each word:
-    1. _list characters on which words must be split_. typically: punctuation marks, such as comma or period. let's say they are then considered _boundaries_.
-    2. _list characters that must be kept together, even if they have been marked in step 2.i_.
+1. _split text on spaces._
+2. for each resulting substring:
+    1. _list characters on which words must be split_. typically: punctuation marks, such as comma or period. let's say they are then considered _token boundaries_.
+    2. _list characters that must be kept together, even if they have been listed in step 2.i_.
     3. remove 2.i from 2.ii, and split on remainings splitting characters.
 
 in most cases, a period is a token boundary: a final period (ending a sentenc) obviously isn't part of the word. but in some cases, the period actually is a part of the word (abbreviations: _p.10_), and in some other cases, the period and the letters following it must be kept in the token (inclusive language: _auteur.rice.s_). these are exceptions, hence they are handled in 2.ii: i remove them from periods found in 2.i. the pattern in 2.i will be: `\.` (match period wherever it is, without any condition), while the pattern in 2.ii could be (if simplified) `(?<=[^a-z][a-z])\.|\.(?=rice|s)` (match period if preceded by a single letter or followed by _rice_ or _s_).
