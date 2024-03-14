@@ -25,7 +25,7 @@ tokenizer for contemporary french.
 usage
 -----
 
-with spacy:
+use as a tokenizer in a spacy pipeline:
 
 ```python
 import quelquhui
@@ -33,9 +33,11 @@ import spacy
 
 nlp = spacy.load('fr_core_news_sm')
 nlp.tokenizer = quelquhui.Toquenizer(nlp.vocab)
+# and then, as you would do with any spacy pipeline, e.g. nlp.pipe, ...
+# (if you omit 'vocab', then an empty one will be initiated.)
 ```
 
-without spacy:
+use as a independant tokenizer:
 
 ```python
 import quelquhui
@@ -58,8 +60,8 @@ qh = quelquhui.Toquenizer(
         "APOSTROPHE": "'`´’" # default
         "HYPHEN": "-–—",  # default
         # signs you'll set here will replace defaults.
-        # other won't be change.
-        # complete list and default can be found with
+        # other won't be changed.
+        # complete list with default values can be found with
         # `quelquhui.default.Chars.__dict__`
     }
     words = {
@@ -68,7 +70,8 @@ qh = quelquhui.Toquenizer(
         "SUFF_FEMININE": ["e", "rice", "ère"], # ...
         "SUFF_NONBINARY": ["x"],
         "SUFF_PLURAL": ["s", "x"],
-        # there only these 5. but default lists are longer.
+        # there's only these 5. 
+        # (default lists for the first three are longer.)
     }
 )
 ```
@@ -98,4 +101,5 @@ dependencies
 ------------
 
 only `python3` and `re` builtin library.
-optionally: `spacy`.
+
+optional: `spacy`.
