@@ -1,0 +1,7 @@
+[project]
+name = "quelquhui"
+authors = [{name="thjbdvlt"}]
+
+[tool.setuptools.packages.find]
+where = "./quelquhui"
+include = ["*"]
