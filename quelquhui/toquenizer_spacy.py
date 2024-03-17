@@ -18,6 +18,7 @@ class QQSpacyToquenizer:
         self.vocab = vocab
         self.re_splitpunct = re_splitpunct
         self.re_freeze = re_freeze
+        self.re_splitspace = re.compile(r"(?<=[^ ]) ").split
 
     def tokenize(self, text: str, **kwargs) -> Doc:
         # 1. split text on spaces.

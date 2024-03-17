@@ -1,3 +1,5 @@
+"""tokenizer for french"""
+
 from quelquhui.french import French
 import re
 
@@ -15,7 +17,6 @@ class Toquenizer:
                 vocab=vocab,
                 re_freeze=fr.re_freeze,
                 re_splitpunct=fr.re_splitpunct,
-                re_splitspace=re.compile(r"(?<=[^ ]) ").split
             )
         elif method == 'quelquhui':
             from quelquhui.toquenizer_light import QQHuiToquenizer
