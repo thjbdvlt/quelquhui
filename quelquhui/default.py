@@ -82,6 +82,7 @@ class Words:
         # les pronoms dit 'adverbiaux'. p.ex. "allons-y", "prends-en".
         # j'ajoute un negative-forehead hyphen pour des cas comme Villard-le-bois et Bise-en-Bulle.
         r"en(?![{hyphen}])",
+        "ce",
         "y",
         # les pronoms 'compléments'. p.ex. "écoutons-les"
         r"la(?![{hyphen}])",
