@@ -79,6 +79,7 @@ class Words:
         "lui",
         "leur",
         "eux",
+        "elleux",
         # les pronoms dit 'adverbiaux'. p.ex. "allons-y", "prends-en".
         # j'ajoute un negative-forehead hyphen pour des cas comme Villard-le-bois et Bise-en-Bulle.
         r"en(?![{hyphen}])",
