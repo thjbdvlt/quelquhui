@@ -9,6 +9,7 @@ class French:
         abbrev: list[str] = [],
         inclusive: bool = True,
         emoticon: bool = True,
+        emoji: bool = True,
         url: bool = True,
         chars: dict = [],
         words: dict = [],
@@ -20,6 +21,7 @@ class French:
         self.url = url
         self.inclusive = inclusive
         self.emoticon = emoticon
+        self.emoji = emoji
 
         self.chars = Chars
         self.words = Words
@@ -175,9 +177,11 @@ class French:
         if self.url is True:
             regex_freeze.append(self.regex_url)
 
+        if self.emoji is True:
+            regex_freeze.append(self._genregex_emoji())
+
         if self.inclusive is True:
-            regex_inclusive = self._genregex_inclusive()
-            regex_freeze.append(regex_inclusive)
+            regex_freeze.append(self._genregex_inclusive())
 
         if self.abbrev is not None and len(self.abbrev) > 0:
             regex_freeze.append(
@@ -224,6 +228,9 @@ class French:
         regexemoticon = fr"(?:{start}(?:{anyemoticon}){end})"
 
         return regexemoticon
+
+    def _genregex_emoji(self):
+        return r":\w+:"
 
     def _aggregex_split(self):
         regexes = [
