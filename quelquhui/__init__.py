@@ -24,7 +24,7 @@ class Toquenizer:
             self.toquenizer = QQHuiToquenizer(
                 freeze=fr.freeze,
                 findborder=fr.findborder,
-                re_nonspace=re.compile("[^\t ]+").finditer,
+                findnonspace=re.compile("[^\t ]+").finditer,
             )
         else:
             raise ValueError("available methods: spacy, quelquhui")
