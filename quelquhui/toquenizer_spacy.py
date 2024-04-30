@@ -45,7 +45,6 @@ class QQSpacyToquenizer:
                 s[n] = [i]
             # unnest la nested list.
             s = [x for y in s for x in y]
-        print(s)
         return [i for i in s if i[0] != ""]
 
     def tokenize(self, text: str, **kwargs) -> Doc:
