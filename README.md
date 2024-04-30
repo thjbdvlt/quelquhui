@@ -22,6 +22,7 @@ tokenizer for contemporary french.
 | dedans/dehors           | `dedans` `/` `dehors`       |
 | 02/10/2024              | `02/10/2024`                |
 | :-)                     | `:-)`                       |
+| (:happy:)               | `(` `:happy:` `)`           |
 
 usage
 -----
