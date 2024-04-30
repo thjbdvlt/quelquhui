@@ -167,16 +167,16 @@ class French:
         patterns = []
 
         if self.emoji is True:
-            patterns.append((self._genregex_emoji(), 'emoji'))
+            patterns.append(self._genregex_emoji())
         if self.emoticon is True:
             if self.regexemoticon is not None:
-                patterns.append((self.regexemoticon, 'emoticon'))
+                patterns.append(self.regexemoticon)
             else:
-                patterns.append((self._genregex_emoticons(), 'emoticon'))
+                patterns.append(self._genregex_emoticons())
         if self.url is True:
-            patterns.append((self.regex_url, 'url'))
+            patterns.append(self.regex_url)
 
-        patterns = [(re.compile(rf"({i[0]})").split, i[1]) for i in patterns]
+        patterns = [re.compile(rf"({i})").split for i in patterns]
         self.split_patterns = patterns
 
     def _aggregex_freeze(self):
