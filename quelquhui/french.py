@@ -3,7 +3,6 @@ import re
 
 
 class French:
-
     def __init__(
         self,
         abbrev: list[str] = [],
@@ -31,9 +30,8 @@ class French:
         for i in words:
             setattr(self.words, i, words[i])
 
-        self.re_splitspace = re.compile(regexspace).split
         self.regex_url = regexurl
-        self.regexemoticon = None
+        self.regexemoticon = regexemoticon
 
         self.makeregexes()
 
@@ -43,12 +41,10 @@ class French:
         hyphen = c.HYPHEN
         apostrophe = c.APOSTROPHE
         self.words.INVERSION = [
-            i.format(hyphen=hyphen, apostrophe=apostrophe)
-            for i in self.words.INVERSION
+            i.format(hyphen=hyphen, apostrophe=apostrophe) for i in self.words.INVERSION
         ]
         self.words.ELISION = [
-            i.format(hyphen=hyphen, apostrophe=apostrophe)
-            for i in self.words.ELISION
+            i.format(hyphen=hyphen, apostrophe=apostrophe) for i in self.words.ELISION
         ]
 
     def _genregex_hypheninversion(self):
@@ -176,8 +172,8 @@ class French:
                 patterns.append(self.regexemoticon)
             else:
                 patterns.append(self._genregex_emoticons())
-        patterns = [re.compile(i).split for i in patterns]
-        return patterns
+        patterns = [re.compile(rf"({i})").split for i in patterns]
+        self.split_patterns = patterns
 
     def _aggregex_freeze(self):
         regex_freeze = [
@@ -193,12 +189,10 @@ class French:
             regex_freeze.append(self._genregex_inclusive())
 
         if self.abbrev is not None and len(self.abbrev) > 0:
-            regex_freeze.append(
-                self._genregex_abbrevmultipleletters()
-            )
+            regex_freeze.append(self._genregex_abbrevmultipleletters())
 
         regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
-        self.re_freeze = re.compile(regex_freeze, re.I).finditer
+        self.freeze = re.compile(regex_freeze, re.I).finditer
 
     def _genregex_emoticons(self):
         # :-)
@@ -228,7 +222,7 @@ class French:
         # - between string boundaries and space
         start = r"(?:^|(?<=\s))"
         end = r"(?:$|(?=\s))"
-        regexemoticon = fr"(?:{start}(?:{anyemoticon}){end})"
+        regexemoticon = rf"(?:{start}(?:{anyemoticon}){end})"
 
         return regexemoticon
 
@@ -242,11 +236,9 @@ class French:
             self._genregex_apostrophe(),
             self._generegex_findborder(),
         ]
-        if self.emoji is True:
-            regexes.insert(0, self._genregex_emoji())
         regexes = [i for i in regexes if i is not None]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
-        self.re_findborder = re.compile(regexes, re.I).finditer
+        self.findborder = re.compile(regexes, re.I).finditer
 
     def makeregexes(self):
         self._update_words()
