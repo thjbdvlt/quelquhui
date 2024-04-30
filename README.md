@@ -102,6 +102,7 @@ how it works
 ------------
 
 1. _split text on spaces._
+2. it re-splits using a few functions (looped) that produced _frozen_ tokens which won't be tokenized by next functions/steps (typically: urls, or text-emoji like `:happy:`, which may be hard to tokenized in cases like `(:happy:)` -- we don't want the regex looking for _emoticons_ to match `:)`).
 2. for each resulting substring:
     1. *list characters on which words must be split*. typically: punctuation marks, such as comma or period. let's say they are then considered *token boundaries*.
     2. *list characters that must be kept together, even if they have been listed in step __2.i__*.
