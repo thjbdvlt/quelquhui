@@ -163,16 +163,20 @@ class French:
         splitboundary = rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
         return r"|".join([splitanywhere, splitboundary])
 
-    def _aggregex_split(self):
+    def _aggregex_splitpatterns(self):
         patterns = []
+
         if self.emoji is True:
-            patterns.append(self._genregex_emoji())
+            patterns.append((self._genregex_emoji(), 'emoji'))
         if self.emoticon is True:
             if self.regexemoticon is not None:
-                patterns.append(self.regexemoticon)
+                patterns.append((self.regexemoticon, 'emoticon'))
             else:
-                patterns.append(self._genregex_emoticons())
-        patterns = [re.compile(rf"({i})").split for i in patterns]
+                patterns.append((self._genregex_emoticons(), 'emoticon'))
+        if self.url is True:
+            patterns.append((self.regex_url, 'url'))
+
+        patterns = [(re.compile(rf"({i[0]})").split, i[1]) for i in patterns]
         self.split_patterns = patterns
 
     def _aggregex_freeze(self):
@@ -181,9 +185,6 @@ class French:
             self._genregex_digitpunct(),
             self._genregex_inword_parenthese(),
         ]
-
-        if self.url is True:
-            regex_freeze.append(self.regex_url)
 
         if self.inclusive is True:
             regex_freeze.append(self._genregex_inclusive())
@@ -243,5 +244,5 @@ class French:
     def makeregexes(self):
         self._update_words()
         self._aggregex_freeze()
-        self._aggregex_split()
+        self._aggregex_splitpatterns()
         self._aggregex_findborder()

@@ -1,7 +1,7 @@
 from spacy.tokens import Doc
 from spacy.vocab import Vocab
 from typing import Callable, Iterable
-from quelquhui.itersplit import alternatefalsetrue
+from quelquhui.itersplit import alternatelabel
 
 
 class QQSpacyToquenizer:
@@ -28,25 +28,24 @@ class QQSpacyToquenizer:
         # split d'abord sur les espaces, sans les conserver.
         s = self.splitspace(text)
         # au départ, aucun mot n'est gelé au départ.
-        s = list(zip(s, len(s) * [False]))
+        s = list(zip(s, len(s) * [None]))
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
-        for fn in self.splitpatterns:
+        for fn, fnlabel in self.splitpatterns:
             # itération sur les segments de textes (les tokens en devenir).
             for n, i in enumerate(s):
-                # ne pas modifié les tokens gelés
-                if i[1] is False:
+                # ne pas modifié les tokens avec un label: ils ont été isolés.
+                if i[1] is None:
                     # split à l'aide de la fonction
                     x = fn(i[0])
                     # si la longueur de la nouvelle liste est supérieur à 1, alors la fonction a modifié quelque chose: les segments extraits sont isolés et gelés, et l'ancien segment est remplacé dans la liste des segments.
                     if len(x) > 1:
-                        s[n] = list(zip(x, alternatefalsetrue()))
+                        s[n] = list(zip(x, alternatelabel(fnlabel)))
                         continue
                 # sinon (si le token est gelé ou si la liste a une longueur de 1) alors le segment est simplement remplacé par une liste ne contenant que lui-même.
                 s[n] = [i]
             # unnest la nested list.
             s = [x for y in s for x in y]
-        # les textes
-        return [i[0] for i in s if i[0] != ""]
+        return [i for i in s if i[0] != ""]
 
     def tokenize(self, text: str, **kwargs) -> Doc:
         # 1. split text on spaces, then re-split with self.split functions.
@@ -56,9 +55,12 @@ class QQSpacyToquenizer:
         #    2.3 split on 2.1 - 2.2
         freeze = self.freeze
         findborder = self.findborder
-        # split on spaces, then eventually split on url, then emoji, then emoticon
+        # split on spaces, then eventually split on url, then emoji, then emoticon (or using other split rules submitted in split_patterns).
         words = self.itersplit(text)
-        for idx, substring in enumerate(words):
+        for idx, (substring, label) in enumerate(words):
+            if label is not None:
+                words[idx] = [(substring, label)]
+                continue
             # get positions of punctuation signs that might split tokens.
             puncts = findborder(substring)
             s = set().union(*[(i.start(), i.end()) for i in puncts])
@@ -67,12 +69,12 @@ class QQSpacyToquenizer:
             s.difference_update(*[range(i.start(), i.end()) for i in frozen])
             if len(s) == 0:
                 # if no split-punct remains, append substring as-is
-                words[idx] = [substring]
-            else:
-                # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
-                s.update([0, len(substring)])
-                x = sorted(s)
-                words[idx] = [substring[i : x[n + 1]] for n, i in enumerate(x[:-1])]
+                words[idx] = [(substring, label)]
+                continue
+            # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
+            s.update([0, len(substring)])
+            x = sorted(s)
+            words[idx] = [(substring[i : x[n + 1]], None) for n, i in enumerate(x[:-1])]
         spaces = [[False] * (len(i) - 1) + [True] for i in words]
         # unnest both lists.
         spaces = [x for y in spaces for x in y]
@@ -86,7 +88,7 @@ class QQSpacyToquenizer:
             spaces = spaces[:-1]
         else:
             spaces[-1] = False
-        return Doc(words=words, spaces=spaces, vocab=self.vocab, **kwargs)
+        return Doc(words=[i[0] for i in words], spaces=spaces, vocab=self.vocab, user_data={"quelquhui": [i[1] for i in words]}, **kwargs)
 
     def __call__(self, text: str, **kwargs) -> Doc:
         return self.tokenize(text, **kwargs)
