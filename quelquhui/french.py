@@ -158,7 +158,7 @@ class French:
         endpunct = rf"[{c.PERIOD + c.QUESTION + c.EXCLAM}]"
         return rf"{endpunct}+"
 
-    def _genregex_splitpunct(self):
+    def _generegex_findborder(self):
         """punctuation that usually split and punctuation that only split on boundaries."""
         c = self.chars
         e = c.PERIOD_CENTERED + c.HYPHEN + c.APOSTROPHE
@@ -166,6 +166,18 @@ class French:
         p = rf"[{e}]"
         splitboundary = rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
         return r"|".join([splitanywhere, splitboundary])
+
+    def _aggregex_split(self):
+        patterns = []
+        if self.emoji is True:
+            patterns.append(self._genregex_emoji())
+        if self.emoticon is True:
+            if self.regexemoticon is not None:
+                patterns.append(self.regexemoticon)
+            else:
+                patterns.append(self._genregex_emoticons())
+        patterns = [re.compile(i).split for i in patterns]
+        return patterns
 
     def _aggregex_freeze(self):
         regex_freeze = [
@@ -177,9 +189,6 @@ class French:
         if self.url is True:
             regex_freeze.append(self.regex_url)
 
-        if self.emoji is True:
-            regex_freeze.append(self._genregex_emoji())
-
         if self.inclusive is True:
             regex_freeze.append(self._genregex_inclusive())
 
@@ -187,12 +196,6 @@ class French:
             regex_freeze.append(
                 self._genregex_abbrevmultipleletters()
             )
-
-        if self.emoticon is True:
-            if self.regexemoticon is not None:
-                regex_freeze.append(self.regexemoticon)
-            else:
-                regex_freeze.append(self._genregex_emoticons())
 
         regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
         self.re_freeze = re.compile(regex_freeze, re.I).finditer
@@ -232,18 +235,21 @@ class French:
     def _genregex_emoji(self):
         return r":\w+:"
 
-    def _aggregex_split(self):
+    def _aggregex_findborder(self):
         regexes = [
             self._genregex_end_sentence(),
             self._genregex_hypheninversion(),
             self._genregex_apostrophe(),
-            self._genregex_splitpunct(),
+            self._generegex_findborder(),
         ]
+        if self.emoji is True:
+            regexes.insert(0, self._genregex_emoji())
         regexes = [i for i in regexes if i is not None]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
-        self.re_splitpunct = re.compile(regexes, re.I).finditer
+        self.re_findborder = re.compile(regexes, re.I).finditer
 
     def makeregexes(self):
         self._update_words()
         self._aggregex_freeze()
         self._aggregex_split()
+        self._aggregex_findborder()

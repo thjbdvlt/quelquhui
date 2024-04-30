@@ -3,20 +3,20 @@ class QQHuiToquenizer:
 
     def __init__(
         self,
-        re_splitpunct,
+        re_findborder,
         re_freeze,
         re_nonspace,
     ):
         """only one argument: context-specific abbreviations."""
         self.re_nonspace = re_nonspace
-        self.re_splitpunct = re_splitpunct
+        self.re_findborder = re_findborder
         self.re_freeze = re_freeze
 
     def tokenize(self, text: str) -> list[tuple[int, int]]:
         """split a text into tokens."""
         # three functions that do the job by freezing and splitting.
         re_nonspace = self.re_nonspace
-        re_splitpunct = self.re_splitpunct
+        re_findborder = self.re_findborder
         re_freeze = self.re_freeze
         d = []
         for nonspace in re_nonspace(text):
@@ -25,7 +25,7 @@ class QQHuiToquenizer:
             substring = text[start:end]
 
             # get positions of punctuation signs that might split tokens.
-            puncts = re_splitpunct(substring)
+            puncts = re_findborder(substring)
             s = set().union(*[(i.start(), i.end()) for i in puncts])
 
             # and remove from these numerical positions those which are marked as 'frozen' (exception).

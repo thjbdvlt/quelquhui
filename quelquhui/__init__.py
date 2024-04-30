@@ -16,14 +16,14 @@ class Toquenizer:
             self.toquenizer = QQSpacyToquenizer(
                 vocab=vocab,
                 re_freeze=fr.re_freeze,
-                re_splitpunct=fr.re_splitpunct,
+                re_findborder=fr.re_findborder,
             )
         elif method == 'quelquhui':
             from quelquhui.toquenizer_light import QQHuiToquenizer
 
             self.toquenizer = QQHuiToquenizer(
                 re_freeze=fr.re_freeze,
-                re_splitpunct=fr.re_splitpunct,
+                re_findborder=fr.re_findborder,
                 re_nonspace=re.compile("[^\t ]+").finditer
             )
         else:

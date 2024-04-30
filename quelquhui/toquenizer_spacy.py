@@ -8,7 +8,8 @@ class QQSpacyToquenizer:
 
     def __init__(
         self,
-        re_splitpunct: Callable,
+        re_split: list[Callable],
+        re_findborder: Callable,
         re_freeze: Callable,
         vocab: Vocab = None,
         **kwargs
@@ -16,9 +17,21 @@ class QQSpacyToquenizer:
         if vocab is None:
             vocab = Vocab(**kwargs)
         self.vocab = vocab
-        self.re_splitpunct = re_splitpunct
+        self.re_findborder = re_findborder
         self.re_freeze = re_freeze
-        self.re_splitspace = re.compile(r"(?<=[^ ]) ").split
+        self.re_split = [re.compile(r"(?<=[^ ]) ").split] + splitpatterns
+        self.re_decouper
+
+
+    def decouper(self, text: str) -> list[str]:
+        patterns = self.patterns
+        s = patterns[0](text)
+        for pattern in patterns[1:]:
+            for n, i in enumerate(s):
+                s[n] = pattern(i)
+            s = [x for y in s for x in y]
+        s = [i for i in s if i != ""]
+        return s
 
     def tokenize(self, text: str, **kwargs) -> Doc:
         # 1. split text on spaces.
@@ -26,14 +39,14 @@ class QQSpacyToquenizer:
         #    2.1 find characters to split on.
         #    2.2 find characters found in 2.1 but not to split on.
         #    2.3 split on 2.1 - 2.2
-        re_splitspace = self.re_splitspace
+        re_splitspace = self.re_split
         re_freeze = self.re_freeze
-        re_splitpunct = self.re_splitpunct
+        re_findborder = self.re_findborder
         # split on spaces
         words = re_splitspace(text)
         for idx, substring in enumerate(words):
             # get positions of punctuation signs that might split tokens.
-            puncts = re_splitpunct(substring)
+            puncts = re_findborder(substring)
             s = set().union(*[(i.start(), i.end()) for i in puncts])
             # and remove from these numerical positions those which are marked as 'frozen' (exception).
             frozen = re_freeze(substring)
