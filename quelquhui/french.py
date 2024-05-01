@@ -90,12 +90,12 @@ class French:
         return r"|".join(regexes)
 
     def _genregex_abbrev_singleletter(self) -> str:
-        """match single letter abbreviations"""
+        """match single letter abbreviations (any)."""
         c = self.chars
         return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
 
     def _genregex_abbrevmultipleletters(self) -> str:
-        """match longer abbreviations"""
+        """match longer abbreviations (from list of abbreviations)."""
         c = self.chars
         period = c.PERIOD
         abbrev = self.abbrev
@@ -177,10 +177,12 @@ class French:
                 patterns.append(self._genregex_emoticons())
         if self.url is True:
             patterns.append(self.regex_url)
-        self.splitpatterns = patterns
+        self.splitpatterns = [re.compile(rf"({i})") for i in patterns]
 
     def _genregex_arrows(self):
-        return r"<?[-=]+>?"
+        """-> => <--"""
+
+        return r"(?:[-=]+>)|(?:<[-=]+)"
 
     def _aggregex_freeze(self):
         regex_freeze = [
@@ -199,7 +201,7 @@ class French:
             )
 
         regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
-        self.freeze = re.compile(regex_freeze, re.I).finditer
+        self.freeze = re.compile(regex_freeze, re.I)
 
     def _genregex_emoticons(self):
         # :-)
@@ -256,7 +258,7 @@ class French:
         ]
         regexes = [i for i in regexes if i is not None]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
-        self.findborder = re.compile(regexes, re.I).finditer
+        self.findborder = re.compile(regexes, re.I)
 
     def makeregexes(self):
         self._update_words()

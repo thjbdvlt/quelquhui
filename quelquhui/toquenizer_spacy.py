@@ -1,7 +1,7 @@
 from spacy.tokens import Doc
 from spacy.vocab import Vocab
 from typing import Callable, Iterable
-from quelquhui.itersplit import alternatefalsetrue
+from quelquhui.itersplit import alternatefalsetrue, infinitefalse
 
 
 class QQSpacyToquenizer:
@@ -22,30 +22,24 @@ class QQSpacyToquenizer:
         self.findborder = findborder
         self.freeze = findfreeze
 
-    def cut(self, text: str) -> list[str]:
+    def itersplit(self, text: str) -> list[str]:
         """split itérativement un texte à l'aide d'une liste de fonction."""
 
-        # split d'abord sur les espaces, sans les conserver.
-        s = self.splitspace(text)
-        # au départ, aucun mot n'est gelé au départ.
-        s = list(zip(s, len(s) * [False]))
+        # split d'abord sur les espaces, sans les conserver. au départ, aucun mot n'est gelé au départ.
+        s = zip(self.splitspace(text), infinitefalse())
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
-            # itération sur les segments de textes (les tokens en devenir).
-            for n, i in enumerate(s):
-                # ne modifié les tokens qui ne sont pas marqué comme gelés
-                if i[1] is False:
-                    # split à l'aide de la fonction
-                    x = fn(i[0])
-                    # si la longueur de la nouvelle liste est supérieur à 1, alors la fonction a modifié quelque chose: les segments extraits sont isolés et gelés, et l'ancien segment est remplacé dans la liste des segments.
-                    if len(x) > 1:
-                        s[n] = list(zip(x, alternatefalsetrue()))
-                        continue
-                # sinon (si le token est gelé ou si la liste a une longueur de 1) alors le segment est simplement remplacé par une liste ne contenant que lui-même.
-                s[n] = [i]
-            # unnest la nested list.
-            s = [x for y in s for x in y]
-        return [i for i in s if i[0] != ""]
+            split = fn.split
+            search = fn.search
+            s = (
+                zip(split(i[0]), alternatefalsetrue())
+                if i[1] is False and search(i[0])
+                else [i]
+                for i in s
+            )
+            # unnest la nested list et enlève les éléments vides
+            s = [x for y in s for x in y if x[0] != ""]
+        return s
 
     def tokenize(self, text: str, **kwargs) -> Doc:
         # 1. split text on spaces, then re-split with self.split functions.
@@ -56,18 +50,21 @@ class QQSpacyToquenizer:
         freeze = self.freeze
         findborder = self.findborder
         # split on spaces, then eventually split on url, then emoji, then emoticon (or using other split rules submitted in split_patterns).
-        words = self.cut(text)
+        words = self.itersplit(text)
         for idx, (substring, isfrozen) in enumerate(words):
             if isfrozen is True:
                 words[idx] = [substring]
                 continue
-            # get positions of punctuation signs that might split tokens.
-            puncts = findborder(substring)
-            s = set().union(*[(i.start(), i.end()) for i in puncts])
+            # get positions of chars that might split tokens.
+            s = set().union(
+                *[(i.start(), i.end()) for i in findborder(substring)]
+            )
             # and remove from these numerical positions those which are marked as 'frozen' (exception).
-            frozenchars = freeze(substring)
             s.difference_update(
-                *[range(i.start(), i.end()) for i in frozenchars]
+                *[
+                    range(i.start(), i.end())
+                    for i in freeze(substring)
+                ]
             )
             if len(s) == 0:
                 # if no split-punct remains, append substring as-is

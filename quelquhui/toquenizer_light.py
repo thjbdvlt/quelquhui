@@ -24,35 +24,35 @@ class QQHuiToquenizer:
     def tokenize(self, text: str) -> list[tuple[int, int]]:
         """split a text into tokens."""
         # three functions that do the job by freezing and splitting.
-        findborder = self.findborder
-        findfreeze = self.findfreeze
+        re_nonspace = self.splitspace
+        re_splitpunct = self.findborder
+        re_freeze = self.findfreeze
         d = []
-        for nonspace in self.itersplit(text):
-            start, end = nonspace
+        for nonspace in re_nonspace(text):
+            start = nonspace.start()
+            end = nonspace.end()
             substring = text[start:end]
 
             # get positions of punctuation signs that might split tokens.
-            puncts = findborder(substring)
+            puncts = re_splitpunct(substring)
             s = set().union(*[(i.start(), i.end()) for i in puncts])
 
             # and remove from these numerical positions those which are marked as 'frozen' (exception).
-            frozen = findfreeze(substring)
+            frozen = re_freeze(substring)
             s.difference_update(
                 *[range(i.start(), i.end()) for i in frozen]
             )
             if len(s) == 0:
                 # if no split-punct remains, append substring indexes as-is
                 d.append((start, end))
-                continue
-            # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
-            s.update([0, len(substring)])
-            x = sorted(s)
-            d.extend(
-                [
+            else:
+                # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
+                s.update([0, len(substring)])
+                x = sorted(s)
+                d.extend([
                     (start + sub, start + x[n + 1])
                     for n, sub in enumerate(x[:-1])
-                ]
-            )
+                ])
         return d
 
     def __call__(self, text):

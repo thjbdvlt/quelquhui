@@ -1,15 +1,12 @@
-from typing import Callable, Iterable, Generator
-
-
-def alternatelabel(label) -> Generator:
-    """alternativement un label et None"""
-    while True:
-        yield None
-        yield label
+from typing import Generator
 
 
 def alternatefalsetrue() -> Generator:
-    """alternativement False et True"""
     while True:
         yield False
         yield True
+
+
+def infinitefalse() -> Generator:
+    while True:
+        yield False
