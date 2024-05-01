@@ -29,7 +29,6 @@ class QQSpacyToquenizer:
         s = self.splitspace(text)
         # au départ, aucun mot n'est gelé au départ.
         s = list(zip(s, len(s) * [False]))
-        return s
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
             # itération sur les segments de textes (les tokens en devenir).
