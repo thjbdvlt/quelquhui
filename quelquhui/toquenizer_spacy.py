@@ -76,8 +76,9 @@ class QQSpacyToquenizer:
             words[idx] = [
                 substring[i : x[n + 1]] for n, i in enumerate(x[:-1])
             ]
+        # vérifier ici que ça fonctionne: je suis pas sûr!!!
         spaces = [[False] * (len(i) - 1) + [True] for i in words]
-        # unnest both lists.
+        # unnest both lists: first, spaces.
         spaces = [x for y in spaces for x in y]
         words = [x for y in words for x in y]
         # to avoid error. returns empty docs before the end of the processing.
