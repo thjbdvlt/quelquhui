@@ -41,10 +41,12 @@ class French:
         hyphen = c.HYPHEN
         apostrophe = c.APOSTROPHE
         self.words.INVERSION = [
-            i.format(hyphen=hyphen, apostrophe=apostrophe) for i in self.words.INVERSION
+            i.format(hyphen=hyphen, apostrophe=apostrophe)
+            for i in self.words.INVERSION
         ]
         self.words.ELISION = [
-            i.format(hyphen=hyphen, apostrophe=apostrophe) for i in self.words.ELISION
+            i.format(hyphen=hyphen, apostrophe=apostrophe)
+            for i in self.words.ELISION
         ]
 
     def _genregex_hypheninversion(self):
@@ -185,14 +187,16 @@ class French:
             self._genregex_abbrev_singleletter(),
             self._genregex_digitpunct(),
             self._genregex_inword_parenthese(),
-            self._genregex_arrows()
+            self._genregex_arrows(),
         ]
 
         if self.inclusive is True:
             regex_freeze.append(self._genregex_inclusive())
 
         if self.abbrev is not None and len(self.abbrev) > 0:
-            regex_freeze.append(self._genregex_abbrevmultipleletters())
+            regex_freeze.append(
+                self._genregex_abbrevmultipleletters()
+            )
 
         regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
         self.freeze = re.compile(regex_freeze, re.I).finditer
@@ -211,12 +215,23 @@ class French:
 
         # o.O
         facemouth = r"(?:\.|_+)"
-        faceeyes = [r"[oO0@]", r"[vV]", r"\.", r"-", r";", r"\^", r"[<>]"]
+        faceeyes = [
+            r"[oO0@]",
+            r"[vV]",
+            r"\.",
+            r"-",
+            r";",
+            r"\^",
+            r"[<>]",
+        ]
         facesemoticons = [i + facemouth + i for i in faceeyes]
 
         # any emoticons (face / side)
         anyemoticon = r"|".join(
-            [rf"(?:{i})" for i in [sideright, sideleft] + facesemoticons]
+            [
+                rf"(?:{i})"
+                for i in [sideright, sideleft] + facesemoticons
+            ]
         )
 
         # match emoticon only if they are:

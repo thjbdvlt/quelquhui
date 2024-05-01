@@ -16,7 +16,10 @@ class Toquenizer:
                 findfreeze=fr.freeze,
                 findborder=fr.findborder,
                 splitspace=re.compile(r"(?<=[^ ]) ").split,
-                splitwords=[re.compile(rf"({i})").split for i in fr.splitpatterns],
+                splitwords=[
+                    re.compile(rf"({i})").split
+                    for i in fr.splitpatterns
+                ],
             )
         elif method == "quelquhui":
             from quelquhui.toquenizer_light import QQHuiToquenizer
@@ -25,7 +28,9 @@ class Toquenizer:
                 findfreeze=fr.freeze,
                 findborder=fr.findborder,
                 splitspace=re.compile("[^\t ]+").finditer,
-                splitwords=[re.compile(i).finditer for i in fr.splitpatterns],
+                splitwords=[
+                    re.compile(i).finditer for i in fr.splitpatterns
+                ],
             )
         else:
             raise ValueError("available methods: spacy, quelquhui")

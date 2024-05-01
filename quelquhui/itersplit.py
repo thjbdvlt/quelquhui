@@ -16,11 +16,11 @@ def alternatefalsetrue() -> Generator:
 
 
 def itersplitlabel(
-    text: str, 
-    splitspace: Callable, 
-    itersplit: Iterable[tuple[Callable, str]]
+    text: str,
+    splitspace: Callable,
+    itersplit: Iterable[tuple[Callable, str]],
 ) -> list[str]:
-    """split itérativement un texte à l'aide d'une liste de fonction. 
+    """split itérativement un texte à l'aide d'une liste de fonction.
 
     à chaque fonction (sauf la première, qui split sur les espace), est associé un label qui sera attribué aux tokens extraits par la fonction. il peut typiquement s'agir d'un sous-type de token, par exemple 'emoticon' ou 'url'."""
 

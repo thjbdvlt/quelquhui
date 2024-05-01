@@ -66,7 +66,9 @@ class QQSpacyToquenizer:
             s = set().union(*[(i.start(), i.end()) for i in puncts])
             # and remove from these numerical positions those which are marked as 'frozen' (exception).
             frozenchars = freeze(substring)
-            s.difference_update(*[range(i.start(), i.end()) for i in frozenchars])
+            s.difference_update(
+                *[range(i.start(), i.end()) for i in frozenchars]
+            )
             if len(s) == 0:
                 # if no split-punct remains, append substring as-is
                 words[idx] = [substring]
@@ -74,7 +76,9 @@ class QQSpacyToquenizer:
             # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
             s.update([0, len(substring)])
             x = sorted(s)
-            words[idx] = [substring[i : x[n + 1]] for n, i in enumerate(x[:-1])]
+            words[idx] = [
+                substring[i : x[n + 1]] for n, i in enumerate(x[:-1])
+            ]
         spaces = [[False] * (len(i) - 1) + [True] for i in words]
         # unnest both lists.
         spaces = [x for y in spaces for x in y]
@@ -88,7 +92,9 @@ class QQSpacyToquenizer:
             spaces = spaces[:-1]
         else:
             spaces[-1] = False
-        return Doc(words=words, spaces=spaces, vocab=self.vocab, **kwargs)
+        return Doc(
+            words=words, spaces=spaces, vocab=self.vocab, **kwargs
+        )
 
     def __call__(self, text: str, **kwargs) -> Doc:
         return self.tokenize(text, **kwargs)
