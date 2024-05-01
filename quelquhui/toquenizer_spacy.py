@@ -7,22 +7,22 @@ from quelquhui.itersplit import alternatefalsetrue
 class QQSpacyToquenizer:
     def __init__(
         self,
-        split_space: Callable,
-        split_patterns: Iterable[Callable],
+        splitspace: Callable,
+        splitwords: Iterable[Callable],
         findborder: Callable,
-        freeze: Callable,
+        findfreeze: Callable,
         vocab: Vocab = None,
         **kwargs,
     ):
         if vocab is None:
             vocab = Vocab(**kwargs)
         self.vocab = vocab
-        self.splitspace = split_space
-        self.splitpatterns = split_patterns
+        self.splitspace = splitspace
+        self.splitpatterns = splitwords
         self.findborder = findborder
-        self.freeze = freeze
+        self.freeze = findfreeze
 
-    def itersplit(self, text: str) -> list[str]:
+    def cut(self, text: str) -> list[str]:
         """split itérativement un texte à l'aide d'une liste de fonction."""
 
         # split d'abord sur les espaces, sans les conserver.
@@ -56,7 +56,7 @@ class QQSpacyToquenizer:
         freeze = self.freeze
         findborder = self.findborder
         # split on spaces, then eventually split on url, then emoji, then emoticon (or using other split rules submitted in split_patterns).
-        words = self.itersplit(text)
+        words = self.cut(text)
         for idx, (substring, isfrozen) in enumerate(words):
             if isfrozen is True:
                 words[idx] = [substring]

@@ -13,18 +13,19 @@ class Toquenizer:
 
             self.toquenizer = QQSpacyToquenizer(
                 vocab=vocab,
-                freeze=fr.freeze,
+                findfreeze=fr.freeze,
                 findborder=fr.findborder,
-                split_space=re.compile(r"(?<=[^ ]) ").split,
-                split_patterns=fr.split_patterns
+                splitspace=re.compile(r"(?<=[^ ]) ").split,
+                splitwords=[re.compile(rf"({i})").split for i in fr.splitpatterns],
             )
         elif method == "quelquhui":
             from quelquhui.toquenizer_light import QQHuiToquenizer
 
             self.toquenizer = QQHuiToquenizer(
-                freeze=fr.freeze,
+                findfreeze=fr.freeze,
                 findborder=fr.findborder,
-                findnonspace=re.compile("[^\t ]+").finditer,
+                splitspace=re.compile("[^\t ]+").finditer,
+                splitwords=[re.compile(i).finditer for i in fr.splitpatterns],
             )
         else:
             raise ValueError("available methods: spacy, quelquhui")
