@@ -14,6 +14,7 @@ class QQHuiToquenizer:
         self.splitwords = splitwords
 
     def itersplit(self, text: str):
+        # non ça ne va pas du tout, c'est beauuuucoup trop long
         s = [
             ((i.start(), i.end()), False)
             for i in self.splitspace(text)
