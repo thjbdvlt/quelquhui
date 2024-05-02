@@ -14,7 +14,7 @@ class Toquenizer:
                 findfreeze=fr.freeze.finditer,
                 findborder=fr.findborder.finditer,
                 splitspace=re.compile(r"(?<=[^ ]) ").split,
-                splitwords=fr.splitpatterns
+                splitwords=fr.splitpatterns,
             )
         elif method == "quelquhui":
             from quelquhui.toquenizer_light import QQHuiToquenizer
@@ -31,6 +31,3 @@ class Toquenizer:
 
     def __call__(self, text, **kwargs):
         return self.toquenizer(text, **kwargs)
-
-
-

@@ -22,7 +22,7 @@ class QQHuiToquenizer:
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
             search, split = fn.search, fn.split
-            words = [                
+            words = [
                 zip(split(i[0]), alternatefalsetrue())
                 if i[1] is False and search(i[0])
                 else [i]
@@ -37,7 +37,10 @@ class QQHuiToquenizer:
 
         # find borders, typically: punctuation.
         s = set().union(
-            *[(i.start(), i.end()) for i in self.findborder(substring)]
+            *[
+                (i.start(), i.end())
+                for i in self.findborder(substring)
+            ]
         )
 
         # find exceptions, and remove exceptions from borders. for example: inword parenthese(s)
@@ -82,7 +85,10 @@ class QQHuiToquenizer:
 
         words = zip(words, infinitefalse())
         words = self.itersplit(words)
-        words = ([i[0]] if i[1] is True else self.findsplit(i[0]) for i in words)
+        words = (
+            [i[0]] if i[1] is True else self.findsplit(i[0])
+            for i in words
+        )
         words = [x for y in words for x in y]
         return words
 
