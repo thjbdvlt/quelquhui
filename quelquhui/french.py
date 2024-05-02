@@ -110,7 +110,7 @@ class French:
         return rf"\d[{punct}]\d"
 
     def _genregex_digitletter(self):
-        return rf"\b\d+([.,/-]\d+)*(?=[{self.chars.ALPHA}])"
+        return rf"\b\d+(?:[.,/-]\d+)*(?=[{self.chars.ALPHA}])"
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
