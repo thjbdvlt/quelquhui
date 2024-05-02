@@ -29,7 +29,9 @@ class QQHuiToquenizer:
                 for i in words
             ]
             # unnest la nested list et enlève les éléments vides
-            words = [x for y in words for x in y if x[0] != ""]
+            words = [
+                x for y in words for x in y if x[0] != "" and x[0]
+            ]
         return words
 
     def findsplit(self, substring: str) -> list[str]:

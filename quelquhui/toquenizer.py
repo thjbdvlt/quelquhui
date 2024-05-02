@@ -9,6 +9,7 @@ class Toquenizer:
 
         if method == "spacy":
             from quelquhui.toquenizer_spacy import QQSpacyToquenizer
+
             self.toquenizer = QQSpacyToquenizer(
                 vocab=vocab,
                 findfreeze=fr.findexcept.finditer,

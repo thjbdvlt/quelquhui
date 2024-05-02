@@ -12,6 +12,7 @@ class French:
         emoticon: bool = True,
         emoji: bool = True,
         url: bool = True,
+        digitletter: bool = True,
         chars: dict = [],
         words: dict = [],
         regexspace: str = r"([ \t]+)",
@@ -41,6 +42,13 @@ class French:
         self.url = regexurl if url is True else None
         self.arrows = (
             self._genregex_arrows() if emoticon is True else None
+        )
+
+        # plus another one optional because i think it's not an obvious choice: it's to tokenize "12km" as two words [12, km] and 2h as [2, h]. it may lead to annoying results when tokenizing texts that may have words containing digits (but it's unusual, that's why the default behaviour is to split "3h" into two tokens, like in "trois heures").
+        self.digit_letter = (
+            self._genregex_digitletter()
+            if digitletter is True
+            else None
         )
 
         # other are not optional because they defines the syntax of common written french.
@@ -100,6 +108,9 @@ class French:
         c = self.chars
         punct = c.COMMA + c.PERIOD + c.SLASH
         return rf"\d[{punct}]\d"
+
+    def _genregex_digitletter(self):
+        return rf"\b\d+([.,/-]\d+)*(?=[{self.chars.ALPHA}])"
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
@@ -244,7 +255,12 @@ class French:
         return r"(?:[-=]+>)|(?:<[-=]+)"
 
     def _aggregex_splitfuncs(self):
-        patterns = [self.emoji, self.emoticon, self.url]
+        patterns = [
+            self.emoji,
+            self.emoticon,
+            self.url,
+            self.digit_letter,
+        ]
         patterns = [i for i in patterns if i is not None]
         self.itersplit = [re.compile(rf"({i})") for i in patterns]
 
