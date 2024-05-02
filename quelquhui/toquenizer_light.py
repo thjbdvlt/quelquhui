@@ -78,16 +78,15 @@ class QQHuiToquenizer:
         return spaces
 
     def tokenize(self, text: str, **kwargs) -> Doc:
-        """tokenize a text."""
+        nonspace = self.splitspace(text)
+        words = self.cut(nonspace)
 
-        a = self.splitspace(text)
-        nonspace = zip(a, infinitefalse())
-        words = self.itersplit(nonspace)
-        words = (i[0] if i[1] is True else self.findsplit(i[0]) for i in words)
-        words = [x for y in words for x in y]
+        # to avoid error and because it's unnecessary to process empty docs.
+        if len(words) == 0:
+            return Doc(words=[], spaces=[], vocab=self.vocab)
 
         # créer une liste qui dit si les mots sont suivis ou non par des espaces.
-        spaces_after_idx = set(self.findidxspaces(a))
+        spaces_after_idx = set(self.findidxspaces(nonspace))
         spaces = []
         idx = 0
         for i in words:
@@ -97,15 +96,20 @@ class QQHuiToquenizer:
             else:
                 spaces.append(False)
 
-        # to avoid error. returns empty docs before the end of the processing.
-        if len(words) == 0:
-            return Doc(words=[], spaces=[], vocab=self.vocab)
-        else:
-            doc = Doc(
-                words=words, spaces=spaces, vocab=self.vocab, **kwargs
-            )
-            assert doc.text == text
-            return doc
+        doc = Doc(
+            words=words, spaces=spaces, vocab=self.vocab, **kwargs
+        )
+        assert doc.text == text
+        return doc
+
+    def cut(self, words) -> Doc:
+        """tokenize a text."""
+
+        words = zip(words, infinitefalse())
+        words = self.itersplit(words)
+        words = (i[0] if i[1] is True else self.findsplit(i[0]) for i in words)
+        words = [x for y in words for x in y]
+        return words
 
     def __call__(self, text: str, **kwargs) -> Doc:
         return self.tokenize(text, **kwargs)
