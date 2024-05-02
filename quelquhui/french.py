@@ -31,11 +31,17 @@ class French:
         self._update_words()
 
         # there are 4 regexes that are only build and used by the tokenizer if an option is set to True (which is the default, for all). it's mostly because theses four kind of textual things (inclusive language, url, emoticon, emoji) are only recent things, thus there are a lot of text in which we are sure they won't by in. there is no function for url, only a default value. same for emoji (textemoji, like :happy:). if no regex is submitted for emoticon in argument, then it generates one, which is probably not perfect but match a long list of abbreviations that i found somewhere.
-        self.inclusive = self._genregex_inclusive() if inclusive is True else None
-        self.emoticon = self._genregex_emoticons() if emoticon is True else None
+        self.inclusive = (
+            self._genregex_inclusive() if inclusive is True else None
+        )
+        self.emoticon = (
+            self._genregex_emoticons() if emoticon is True else None
+        )
         self.emoji = regexemoji if emoji is True else None
         self.url = regexurl if url is True else None
-        self.arrows = self._genregex_arrows() if emoticon is True else None
+        self.arrows = (
+            self._genregex_arrows() if emoticon is True else None
+        )
 
         # other are not optional because they defines the syntax of common written french.
         self.elision = self._genregex_apostrophe()
@@ -46,11 +52,15 @@ class French:
         self.digit_punct = self._genregex_digitpunct()
 
         # generate regex using options. for many regexes, the only parts dynamically generated are relative to chars or words (e.g.: what must be considered as a hyphen, which suffixes needs to be used as inclusive language markers, etc.).
-        self.abbrev_single_letter = self._genregex_abbrev_singleletter()
+        self.abbrev_single_letter = (
+            self._genregex_abbrev_singleletter()
+        )
 
         # multi-letters abbreviation regex is only generated if some abbreviations are set in argument.
         if abbrev is not None and len(abbrev) > 0:
-            self.abbrev_multiple_letter = self._genregex_abbrevmultipleletters(abbrev)
+            self.abbrev_multiple_letter = (
+                self._genregex_abbrevmultipleletters(abbrev)
+            )
         else:
             self.abbrev_multiple_letter = None
 
@@ -248,7 +258,7 @@ class French:
             # optional
             self.inclusive,
             self.abbrev_multiple_letter,
-            self.arrows
+            self.arrows,
         ]
         # keeps no-None values, and join them in a regex compiled with ignore case flag.
         regex_freeze = [i for i in regex_freeze if i is not None]
