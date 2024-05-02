@@ -3,6 +3,8 @@ import re
 
 
 class French:
+    """regexes for french tokenization."""
+
     def __init__(
         self,
         abbrev: list[str] = [],
@@ -14,24 +16,43 @@ class French:
         words: dict = [],
         regexspace: str = r"([ \t]+)",
         regexurl: str = r"(?:\w+://|www\.)[\S]+[\w/]",
+        regexemoji: str = r":\w+:",
         regexemoticon: str = None,
     ):
-        self.abbrev = abbrev
-        self.url = url
-        self.inclusive = inclusive
-        self.emoticon = emoticon
-        self.emoji = emoji
-
+        # import default chars and words
         self.chars = Chars
         self.words = Words
 
+        # update chars and words with ones submitted in argument. and update words lists that depends on hyphen and apostrophes (inversion, elision).
         for i in chars:
             setattr(self.chars, i, chars[i])
         for i in words:
             setattr(self.words, i, words[i])
+        self._update_words()
 
-        self.regex_url = regexurl
-        self.regexemoticon = regexemoticon
+        # there are 4 regexes that are only build and used by the tokenizer if an option is set to True (which is the default, for all). it's mostly because theses four kind of textual things (inclusive language, url, emoticon, emoji) are only recent things, thus there are a lot of text in which we are sure they won't by in. there is no function for url, only a default value. same for emoji (textemoji, like :happy:). if no regex is submitted for emoticon in argument, then it generates one, which is probably not perfect but match a long list of abbreviations that i found somewhere.
+        self.inclusive = self._genregex_inclusive() if inclusive is True else None
+        self.emoticon = self._genregex_emoticons() if emoticon is True else None
+        self.emoji = regexemoji if emoji is True else None
+        self.url = regexurl if url is True else None
+        self.arrows = self._genregex_arrows() if emoticon is True else None
+
+        # other are not optional because they defines the syntax of common written french.
+        self.elision = self._genregex_apostrophe()
+        self.inversion = self._genregex_hypheninversion()
+        self.usual_punct = self._genregex_usualpunct()
+        self.inword_parenthese = self._genregex_inword_parenthese()
+        self.end_sentence = self._genregex_end_sentence()
+        self.digit_punct = self._genregex_digitpunct()
+
+        # generate regex using options. for many regexes, the only parts dynamically generated are relative to chars or words (e.g.: what must be considered as a hyphen, which suffixes needs to be used as inclusive language markers, etc.).
+        self.abbrev_single_letter = self._genregex_abbrev_singleletter()
+
+        # multi-letters abbreviation regex is only generated if some abbreviations are set in argument.
+        if abbrev is not None and len(abbrev) > 0:
+            self.abbrev_multiple_letter = self._genregex_abbrevmultipleletters(abbrev)
+        else:
+            self.abbrev_multiple_letter = None
 
         self.makeregexes()
 
@@ -94,11 +115,10 @@ class French:
         c = self.chars
         return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
 
-    def _genregex_abbrevmultipleletters(self) -> str:
+    def _genregex_abbrevmultipleletters(self, abbrev) -> str:
         """match longer abbreviations (from list of abbreviations)."""
         c = self.chars
         period = c.PERIOD
-        abbrev = self.abbrev
         abbrev = r"|".join([rf"(?:{i})" for i in abbrev])
         return rf"\b({abbrev}){period}"
 
@@ -156,7 +176,7 @@ class French:
         endpunct = rf"[{c.PERIOD + c.QUESTION + c.EXCLAM}]"
         return rf"{endpunct}+"
 
-    def _generegex_findborder(self):
+    def _genregex_usualpunct(self):
         """punctuation that usually split and punctuation that only split on boundaries."""
         c = self.chars
         e = c.PERIOD_CENTERED + c.HYPHEN + c.APOSTROPHE
@@ -164,44 +184,6 @@ class French:
         p = rf"[{e}]"
         splitboundary = rf"^{p}|(?<=\W){p}|{p}(?=\W)|{p}$"
         return r"|".join([splitanywhere, splitboundary])
-
-    def _aggregex_splitfuncs(self):
-        patterns = []
-
-        if self.emoji is True:
-            patterns.append(self._genregex_emoji())
-        if self.emoticon is True:
-            if self.regexemoticon is not None:
-                patterns.append(self.regexemoticon)
-            else:
-                patterns.append(self._genregex_emoticons())
-        if self.url is True:
-            patterns.append(self.regex_url)
-        self.splitpatterns = [re.compile(rf"({i})") for i in patterns]
-
-    def _genregex_arrows(self):
-        """-> => <--"""
-
-        return r"(?:[-=]+>)|(?:<[-=]+)"
-
-    def _aggregex_freeze(self):
-        regex_freeze = [
-            self._genregex_abbrev_singleletter(),
-            self._genregex_digitpunct(),
-            self._genregex_inword_parenthese(),
-            self._genregex_arrows(),
-        ]
-
-        if self.inclusive is True:
-            regex_freeze.append(self._genregex_inclusive())
-
-        if self.abbrev is not None and len(self.abbrev) > 0:
-            regex_freeze.append(
-                self._genregex_abbrevmultipleletters()
-            )
-
-        regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
-        self.freeze = re.compile(regex_freeze, re.I)
 
     def _genregex_emoticons(self):
         # :-)
@@ -246,22 +228,45 @@ class French:
 
         return regexemoticon
 
-    def _genregex_emoji(self):
-        return r":\w+:"
+    def _genregex_arrows(self):
+        """-> => <--"""
+
+        return r"(?:[-=]+>)|(?:<[-=]+)"
+
+    def _aggregex_splitfuncs(self):
+        patterns = [self.emoji, self.emoticon, self.url]
+        patterns = [i for i in patterns if i is not None]
+        self.itersplit = [re.compile(rf"({i})") for i in patterns]
+
+    def _aggregex_freeze(self):
+        """aggregate regexes that performs as exceptions finder (that prevent tokenization on some pattern)."""
+        regex_freeze = [
+            # always
+            self.abbrev_single_letter,
+            self.digit_punct,
+            self.inword_parenthese,
+            # optional
+            self.inclusive,
+            self.abbrev_multiple_letter,
+            self.arrows
+        ]
+        # keeps no-None values, and join them in a regex compiled with ignore case flag.
+        regex_freeze = [i for i in regex_freeze if i is not None]
+        regex_freeze = r"|".join([rf"(?:{i})" for i in regex_freeze])
+        self.findexcept = re.compile(regex_freeze, re.I)
 
     def _aggregex_findborder(self):
         regexes = [
-            self._genregex_end_sentence(),
-            self._genregex_hypheninversion(),
-            self._genregex_apostrophe(),
-            self._generegex_findborder(),
+            self.end_sentence,
+            self.inversion,
+            self.elision,
+            self.usual_punct,
         ]
         regexes = [i for i in regexes if i is not None]
         regexes = r"|".join([rf"(?:{i})" for i in regexes])
         self.findborder = re.compile(regexes, re.I)
 
     def makeregexes(self):
-        self._update_words()
         self._aggregex_freeze()
         self._aggregex_splitfuncs()
         self._aggregex_findborder()
