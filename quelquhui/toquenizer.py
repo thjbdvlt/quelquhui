@@ -5,13 +5,13 @@ import re
 class Toquenizer:
     def __init__(self, vocab=None, method: str = "spacy", **kwargs):
         fr = French(**kwargs)
+        self.regexes = fr
 
         if method == "spacy":
             from quelquhui.toquenizer_spacy import QQSpacyToquenizer
-
             self.toquenizer = QQSpacyToquenizer(
                 vocab=vocab,
-                findfreeze=fr.freeze.finditer,
+                findfreeze=fr.findexcept.finditer,
                 findborder=fr.findborder.finditer,
                 splitspace=re.compile(r"(?<=[^ ]) ").split,
                 splitwords=fr.itersplit,
@@ -20,7 +20,7 @@ class Toquenizer:
             from quelquhui.toquenizer_light import QQHuiToquenizer
 
             self.toquenizer = QQHuiToquenizer(
-                findfreeze=fr.freeze.finditer,
+                findfreeze=fr.findexcept.finditer,
                 findborder=fr.findborder.finditer,
                 splitspace=re.compile(r"(?<=[^ ]) ").split,
                 splitwords=fr.itersplit,
