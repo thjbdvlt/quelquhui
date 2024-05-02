@@ -1,5 +1,3 @@
-from spacy.tokens import Doc
-from spacy.vocab import Vocab
 from typing import Callable, Iterable
 from quelquhui.itersplit import alternatefalsetrue, infinitefalse
 
@@ -11,12 +9,8 @@ class QQHuiToquenizer:
         splitwords: Iterable[Callable],
         findborder: Callable,
         findfreeze: Callable,
-        vocab: Vocab = None,
         **kwargs,
     ):
-        if vocab is None:
-            vocab = Vocab(**kwargs)
-        self.vocab = vocab
         self.splitspace = splitspace
         self.splitpatterns = splitwords
         self.findborder = findborder
@@ -28,14 +22,14 @@ class QQHuiToquenizer:
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
             search, split = fn.search, fn.split
-            words = (
+            words = [                
                 zip(split(i[0]), alternatefalsetrue())
                 if i[1] is False and search(i[0])
                 else [i]
                 for i in words
-            )
+            ]
             # unnest la nested list et enlève les éléments vides
-            words = (x for y in words for x in y if x[0] != "")
+            words = [x for y in words for x in y if x[0] != ""]
         return words
 
     def findsplit(self, substring: str) -> list[str]:
@@ -70,6 +64,7 @@ class QQHuiToquenizer:
         return words
 
     def findidxspaces(self, words: list[str]) -> list[int]:
+        """find indexes of spaces"""
         spaces = []
         n = 0
         for i in words[:-1]:
@@ -77,39 +72,19 @@ class QQHuiToquenizer:
             spaces.append(n)
         return spaces
 
-    def tokenize(self, text: str, **kwargs) -> Doc:
+    def tokenize(self, text: str, **kwargs) -> list[str]:
         nonspace = self.splitspace(text)
         words = self.cut(nonspace)
+        return words
 
-        # to avoid error and because it's unnecessary to process empty docs.
-        if len(words) == 0:
-            return Doc(words=[], spaces=[], vocab=self.vocab)
-
-        # créer une liste qui dit si les mots sont suivis ou non par des espaces.
-        spaces_after_idx = set(self.findidxspaces(nonspace))
-        spaces = []
-        idx = 0
-        for i in words:
-            idx += len(i)
-            if idx in spaces_after_idx:
-                spaces.append(True)
-            else:
-                spaces.append(False)
-
-        doc = Doc(
-            words=words, spaces=spaces, vocab=self.vocab, **kwargs
-        )
-        assert doc.text == text
-        return doc
-
-    def cut(self, words) -> Doc:
+    def cut(self, words) -> list[str]:
         """tokenize a text."""
 
         words = zip(words, infinitefalse())
         words = self.itersplit(words)
-        words = (i[0] if i[1] is True else self.findsplit(i[0]) for i in words)
+        words = ([i[0]] if i[1] is True else self.findsplit(i[0]) for i in words)
         words = [x for y in words for x in y]
         return words
 
-    def __call__(self, text: str, **kwargs) -> Doc:
+    def __call__(self, text: str, **kwargs) -> list[str]:
         return self.tokenize(text, **kwargs)
