@@ -23,7 +23,6 @@ class Toquenizer:
                 findfreeze=fr.freeze.finditer,
                 findborder=fr.findborder.finditer,
                 splitspace=re.compile(r"(?<=[^ ]) ").split,
-                # splitspace=re.compile("[^\t ]+").finditer,
                 splitwords=fr.splitpatterns,
             )
         else:
