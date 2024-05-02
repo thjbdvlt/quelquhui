@@ -1,73 +1,111 @@
-class QQHuiToquenizer:
-    """tokenize texts."""
+from spacy.tokens import Doc
+from spacy.vocab import Vocab
+from typing import Callable, Iterable
+from quelquhui.itersplit import alternatefalsetrue, infinitefalse
 
+
+class QQHuiToquenizer:
     def __init__(
         self,
-        findborder,
-        findfreeze,
-        splitspace,
-        splitwords,
+        splitspace: Callable,
+        splitwords: Iterable[Callable],
+        findborder: Callable,
+        findfreeze: Callable,
+        vocab: Vocab = None,
+        **kwargs,
     ):
+        if vocab is None:
+            vocab = Vocab(**kwargs)
+        self.vocab = vocab
+        self.splitspace = splitspace
+        self.splitpatterns = splitwords
         self.findborder = findborder
         self.findfreeze = findfreeze
-        self.splitspace = splitspace
-        self.splitwords = splitwords
 
-    def itersplit(self, text: str):
-        # non ça ne va pas du tout, c'est beauuuucoup trop long
-        # ha mais je testais mal, je reesaie
-        s = [
-            (i.start(), i.end(), False)
-            for i in self.splitspace(text)
-        ]
-        for fn in self.splitwords:
-            for n, token in enumerate(s):
-                start, end, frozen = token
-                substring = text[start:end]
-                x = list(fn.finditer(substring))
-                if len(x) == 0:
-                    s[n] = [token]
-                    continue
-                matches = [(i.start()+start, i.end()+start, True) for i in x]
-                nonmatches = [(matches[n][1], matches[n+1][0], False) for n in range(len(matches)-1)] + [(start, matches[0][0], False), (matches[-1][1], end, False)]
-                s[n] = sorted(matches + nonmatches)
-            s = [x for y in s for x in y]
-        return s
+    def itersplit(self, words: Iterable[tuple]) -> Iterable[str]:
+        """split itérativement un mot à l'aide d'une liste de fonction."""
 
-    def tokenize(self, text: str) -> list[tuple[int, int]]:
-        """split a text into tokens."""
-        # three functions that do the job by freezing and splitting.
-        re_splitpunct = self.findborder
-        re_freeze = self.findfreeze
-        d = []
-        for nonspace in self.itersplit(text):
-            start, end, frozen = nonspace
-            if frozen is True:
-                d.append((start, end))
-                continue
-            substring = text[start:end]
-
-            # get positions of punctuation signs that might split tokens.
-            puncts = re_splitpunct(substring)
-            s = set().union(*[(i.start(), i.end()) for i in puncts])
-
-            # and remove from these numerical positions those which are marked as 'frozen' (exception).
-            frozen = re_freeze(substring)
-            s.difference_update(
-                *[range(i.start(), i.end()) for i in frozen]
+        # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
+        for fn in self.splitpatterns:
+            search, split = fn.search, fn.split
+            words = (
+                zip(split(i[0]), alternatefalsetrue())
+                if i[1] is False and search(i[0])
+                else [i]
+                for i in words
             )
-            if len(s) == 0:
-                # if no split-punct remains, append substring indexes as-is
-                d.append((start, end))
-            else:
-                # else, add all parts one after the other. add 0 and len(substring.text) to ensure all text is kept.
-                s.update([0, len(substring)])
-                x = sorted(s)
-                d.extend([
-                    (start + sub, start + x[n + 1])
-                    for n, sub in enumerate(x[:-1])
-                ])
-        return d
+            # unnest la nested list et enlève les éléments vides
+            words = (x for y in words for x in y if x[0] != "")
+        return words
 
-    def __call__(self, text):
-        return self.tokenize(text)
+    def findsplit(self, substring: str) -> list[str]:
+        """split a substring into many using two functions: one that find potential boundaries, and another one that find some exceptions that will be substract for the boundaries."""
+
+        # find borders, typically: punctuation.
+        s = set().union(
+            *[(i.start(), i.end()) for i in self.findborder(substring)]
+        )
+
+        # find exceptions, and remove exceptions from borders. for example: inword parenthese(s)
+        s.difference_update(
+            *[
+                range(i.start(), i.end())
+                for i in self.findfreeze(substring)
+            ]
+        )
+
+        if len(s) == 0:
+            # if no borders remains, return substring without any change
+            return [substring]
+
+        # else, add all subwords
+        s.update([0, len(substring)])
+        x = sorted(s)
+        words = []
+        prev = 0
+        for i in x[1:]:
+            words.append(substring[prev:i])
+            prev = i
+
+        return words
+
+    def findidxspaces(self, words: list[str]) -> list[int]:
+        spaces = []
+        n = 0
+        for i in words[:-1]:
+            n += len(i)
+            spaces.append(n)
+        return spaces
+
+    def tokenize(self, text: str, **kwargs) -> Doc:
+        """tokenize a text."""
+
+        a = self.splitspace(text)
+        nonspace = zip(a, infinitefalse())
+        words = self.itersplit(nonspace)
+        words = (i[0] if i[1] is True else self.findsplit(i[0]) for i in words)
+        words = [x for y in words for x in y]
+
+        # créer une liste qui dit si les mots sont suivis ou non par des espaces.
+        spaces_after_idx = set(self.findidxspaces(a))
+        spaces = []
+        idx = 0
+        for i in words:
+            idx += len(i)
+            if idx in spaces_after_idx:
+                spaces.append(True)
+            else:
+                spaces.append(False)
+
+        # to avoid error. returns empty docs before the end of the processing.
+        if len(words) == 0:
+            return Doc(words=[], spaces=[], vocab=self.vocab)
+        else:
+            doc = Doc(
+                words=words, spaces=spaces, vocab=self.vocab, **kwargs
+            )
+            assert doc.text == text
+            return doc
+
+    def __call__(self, text: str, **kwargs) -> Doc:
+        return self.tokenize(text, **kwargs)
