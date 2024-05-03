@@ -12,7 +12,6 @@ class French:
         emoticon: bool = True,
         emoji: bool = True,
         url: bool = True,
-        digitletter: bool = True,
         chars: dict = [],
         words: dict = [],
         regexspace: str = r"([ \t]+)",
@@ -44,12 +43,8 @@ class French:
             self._genregex_arrows() if emoticon is True else None
         )
 
-        # plus another one optional because i think it's not an obvious choice: it's to tokenize "12km" as two words [12, km] and 2h as [2, h]. it may lead to annoying results when tokenizing texts that may have words containing digits (but it's unusual, that's why the default behaviour is to split "3h" into two tokens, like in "trois heures").
-        self.digit_letter = (
-            self._genregex_digitletter()
-            if digitletter is True
-            else None
-        )
+        # plus another one that could be optional (not for now) because i think it's not an obvious choice: it's to tokenize "12km" as two words [12, km] and 2h as [2, h]. it may lead to annoying results when tokenizing texts that may have words containing digits (but it's unusual, that's why the default behaviour is to split "3h" into two tokens, like in "trois heures").
+        self.number = r"(?<!\w)\d+[\d\W]*"
 
         # other are not optional because they defines the syntax of common written french.
         self.elision = self._genregex_apostrophe()
@@ -57,7 +52,6 @@ class French:
         self.usual_punct = self._genregex_usualpunct()
         self.inword_parenthese = self._genregex_inword_parenthese()
         self.end_sentence = self._genregex_end_sentence()
-        self.digit_punct = self._genregex_digitpunct()
 
         # generate regex using options. for many regexes, the only parts dynamically generated are relative to chars or words (e.g.: what must be considered as a hyphen, which suffixes needs to be used as inclusive language markers, etc.).
         self.abbrev_single_letter = (
@@ -103,16 +97,7 @@ class French:
         words_agg = r"|".join(words)
         return rf"\b(?:{words_agg})[{apostrophe}]"
 
-    def _genregex_digitpunct(self):
-        """match digits and punctuation that needs to be frozen."""
-        c = self.chars
-        punct = c.COMMA + c.PERIOD + c.SLASH
-        return rf"\d[{punct}]\d"
-
-    def _genregex_digitletter(self):
-        c = self.chars
-        punct = c.HYPHEN + c.COMMA + c.APOSTROPHE + c.SLASH + c.PERIOD
-        return rf"\b\d+(?:[{punct}]\d+)*(?=[{c.ALPHA}])"
+        return
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
@@ -261,7 +246,7 @@ class French:
             self.emoji,
             self.emoticon,
             self.url,
-            self.digit_letter,
+            self.number,
         ]
         patterns = [i for i in patterns if i is not None]
         self.itersplit = [re.compile(rf"({i})") for i in patterns]
@@ -271,7 +256,6 @@ class French:
         regex_freeze = [
             # always
             self.abbrev_single_letter,
-            self.digit_punct,
             self.inword_parenthese,
             # optional
             self.inclusive,
