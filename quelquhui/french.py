@@ -130,7 +130,7 @@ class French:
         abbrev = r"|".join([rf"(?:{i})" for i in abbrev])
         return rf"\b({abbrev}){period}"
 
-    def _genregex_inclusive(self):
+    def _genregex_inclusive(self, chars: str = r'[\-\.\·]'):
         """match period used for inclusive language.
 
         match cases like:
@@ -146,7 +146,6 @@ class French:
             - enseignant.sère (plural suff. does not precede feminine suff.)
         """
 
-        period = self.chars.PERIOD
         w = self.words
 
         # join all forms for each suffix groups.
@@ -165,8 +164,7 @@ class French:
         # aggregate the 'come after' groups
         if_group_then = rf"(?(f){if_f}|(?(x){if_x}|{if_s}))"
 
-        # return rf"{period}(?={firstsuffix}(?={if_group_then}))"
-        return rf"{period}({firstsuffix}(?={if_group_then}))"
+        return rf"{chars}({firstsuffix}(?={if_group_then}))"
 
     def _genregex_end_sentence(self):
         """match any number of .?!
