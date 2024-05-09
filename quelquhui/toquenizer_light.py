@@ -17,7 +17,7 @@ class QQHuiToquenizer:
         self.findfreeze = findfreeze
 
     def itersplit(self, words: Iterable[tuple]) -> Iterable[str]:
-        """split itérativement un mot à l'aide d'une liste de fonction."""
+        """iteratively split a list of tokens using an Iterable of `re.Pattern`."""
 
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
@@ -69,7 +69,11 @@ class QQHuiToquenizer:
         return words
 
     def findidxspaces(self, words: list[str]) -> list[int]:
-        """find indexes of spaces"""
+        """find indexes of spaces.
+
+        (to be able to keep track of position of each token in the text.)
+        """
+
         spaces = []
         n = 0
         for i in words[:-1]:
@@ -78,12 +82,13 @@ class QQHuiToquenizer:
         return spaces
 
     def tokenize(self, text: str, **kwargs) -> list[str]:
+        """tokenize a text"""
         nonspace = self.splitspace(text)
         words = self.cut(nonspace)
         return words
 
     def cut(self, words) -> list[str]:
-        """tokenize a text."""
+        """tokenize more.."""
 
         words = zip(words, infinitefalse())
         words = self.itersplit(words)
@@ -95,4 +100,6 @@ class QQHuiToquenizer:
         return words
 
     def __call__(self, text: str, **kwargs) -> list[str]:
+        """tokenize a text with method `Toquenizer.tokenize(text)`"""
+
         return self.tokenize(text, **kwargs)

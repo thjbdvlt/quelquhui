@@ -40,13 +40,14 @@ class French:
         self.emoji = regexemoji if emoji is True else None
         self.url = regexurl if url is True else None
         self.arrows = (
-            self._genregex_arrows() if emoticon is True else None
+            r"(?:[-=]+>)|(?:<[-=]+)" if emoticon is True else None
         )
 
         # plus another one that could be optional (not for now) because i think it's not an obvious choice: it's to tokenize "12km" as two words [12, km] and 2h as [2, h]. it may lead to annoying results when tokenizing texts that may have words containing digits (but it's unusual, that's why the default behaviour is to split "3h" into two tokens, like in "trois heures").
         self.number = r"(?<!\w)\d+[\d\W]*"
 
         # other are not optional because they defines the syntax of common written french.
+        self.newline = r"[\n\r]+"
         self.elision = self._genregex_apostrophe()
         self.inversion = self._genregex_hypheninversion()
         self.usual_punct = self._genregex_usualpunct()
@@ -70,6 +71,7 @@ class French:
 
     def _update_words(self) -> None:
         """format regex words with hyphen and apostrophe"""
+
         c = self.chars
         hyphen = c.HYPHEN
         apostrophe = c.APOSTROPHE
@@ -84,6 +86,7 @@ class French:
 
     def _genregex_hypheninversion(self):
         """match hyphen if preceded by letter and followed by registered word"""
+
         hyphen = self.chars.HYPHEN
         words = self.words.INVERSION
         words_agg = r"|".join(words)
@@ -92,6 +95,7 @@ class French:
 
     def _genregex_apostrophe(self):
         """match apostrophe if preceded by registered word."""
+
         words = self.words.ELISION
         apostrophe = self.chars.APOSTROPHE
         words_agg = r"|".join(words)
@@ -101,6 +105,7 @@ class French:
 
     def _genregex_inword_parenthese(self) -> (str, str):
         """match inside-word parenthese that must be frozen"""
+
         c = self.chars
         a = rf"[{self.chars.ALPHA}-]"
         parentheses = (
@@ -120,17 +125,19 @@ class French:
 
     def _genregex_abbrev_singleletter(self) -> str:
         """match single letter abbreviations (any)."""
+
         c = self.chars
         return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
 
     def _genregex_abbrevmultipleletters(self, abbrev) -> str:
         """match longer abbreviations (from list of abbreviations)."""
+
         c = self.chars
         period = c.PERIOD
         abbrev = r"|".join([rf"(?:{i})" for i in abbrev])
         return rf"\b({abbrev}){period}"
 
-    def _genregex_inclusive(self, chars: str = r'[\-\.\·]'):
+    def _genregex_inclusive(self, chars: str = r"[\-\.\·]"):
         """match period used for inclusive language.
 
         match cases like:
@@ -164,7 +171,9 @@ class French:
         # aggregate the 'come after' groups
         if_group_then = rf"(?(f){if_f}|(?(x){if_x}|{if_s}))"
 
-        return rf"{chars}({firstsuffix}(?={if_group_then}))"
+        self.inclusive_suffix = fr"({firstsuffix}(?={if_group_then}))"
+
+        return rf"(?<=.){chars}({firstsuffix}(?={if_group_then}))"
 
     def _genregex_end_sentence(self):
         """match any number of .?!
@@ -178,12 +187,14 @@ class French:
             - ,-!
         which are not used (as far as i know).
         """
+
         c = self.chars
         endpunct = rf"[{c.PERIOD + c.QUESTION + c.EXCLAM}]"
         return rf"{endpunct}+"
 
     def _genregex_usualpunct(self):
         """punctuation that usually split and punctuation that only split on boundaries."""
+
         c = self.chars
         e = c.PERIOD_CENTERED + c.HYPHEN + c.APOSTROPHE
         splitanywhere = rf"[^\w{e}]"
@@ -192,9 +203,17 @@ class French:
         return r"|".join([splitanywhere, splitboundary])
 
     def _genregex_emoticons(self):
-        # :-)
-        # D-;
-        # >:^)
+        """generate a regex for emoticons.
+
+        it combines signs used for eyes, nose, mouth, ... to produce a list of emoticons.
+
+        examples
+        --------
+            :-)
+            D-;
+            >:^)
+
+        """
         eyebrowsleft = r">?"
         eyebrowsright = r"<?"
         eyes = r"[\:=;8x]'?"
@@ -234,13 +253,9 @@ class French:
 
         return regexemoticon
 
-    def _genregex_arrows(self):
-        """-> => <--"""
-
-        return r"(?:[-=]+>)|(?:<[-=]+)"
-
     def _aggregex_splitfuncs(self):
         patterns = [
+            self.newline,
             self.emoji,
             self.emoticon,
             self.url,
@@ -251,6 +266,7 @@ class French:
 
     def _aggregex_freeze(self):
         """aggregate regexes that performs as exceptions finder (that prevent tokenization on some pattern)."""
+
         regex_freeze = [
             # always
             self.abbrev_single_letter,
