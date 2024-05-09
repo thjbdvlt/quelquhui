@@ -171,7 +171,7 @@ class French:
         # aggregate the 'come after' groups
         if_group_then = rf"(?(f){if_f}|(?(x){if_x}|{if_s}))"
 
-        self.inclusive_suffix = fr"({firstsuffix}(?={if_group_then}))"
+        self.inclusive_suffix = fr"({firstsuffix}({if_group_then}))"  # pour d'autres utilisation à l'aide de 'fullmatch'. nécessite de ne pas utiliser (?=) à la fin (car alors impossible de fullmatch une string qui doit être suivi par qqch).
 
         return rf"(?<=.){chars}({firstsuffix}(?={if_group_then}))"
 
