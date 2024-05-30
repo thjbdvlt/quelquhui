@@ -46,6 +46,18 @@ qh = quelquhui.Toquenizer(method='quelquhui')
 doc = qh("la machine à (b)rouiller le temps s'est peut-être dérailler...")
 ```
 
+installation
+------------
+
+```bash
+git clone https://github.com/thjbdvlt/quelquhui quelquhui
+cd quelquhui
+pip install .
+```
+
+configuration
+-------------
+
 very few options can be set to modify the tokenizer behavior:
 
 ```python
@@ -108,6 +120,5 @@ in most cases, a hyphen isn't a token boundary, because in french the hyphen is 
 dependencies
 ------------
 
-only __python3__ and [re](https://docs.python.org/3/library/re.html) builtin library.
-
-optional: [spacy](https://spacy.io/api)
+- python3
+- optional: [spacy](https://spacy.io/api)
