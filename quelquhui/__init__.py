@@ -1,3 +1,9 @@
-"""tokenizer for french"""
+try:
+    import quelquhui.toquenizer_spacy
 
-from quelquhui.toquenizer import Toquenizer
+    Toquenizer = quelquhui.toquenizer_spacy.Toquenizer
+
+except ModuleNotFoundError:
+    import quelquhui.toquenizer_light
+
+    Toquenizer = quelquhui.toquenizer_light.Toquenizer

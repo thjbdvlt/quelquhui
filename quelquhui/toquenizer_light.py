@@ -1,36 +1,29 @@
-from quelquhui.itersplit import alternatefalsetrue, infinitefalse
+import quelquhui.itersplit
+import quelquhui.french
+import re
 
 
-class QQHuiToquenizer:
-    def __init__(
-        self,
-        splitspace,
-        splitwords,
-        findborder,
-        findfreeze,
-        **kwargs,
-    ):
+class Toquenizer:
+    def __init__(self, **kwargs):
         """Initiate a Toquenizer to be used on raw text.
 
         Args:
-            splitspace: a function to split on spaces.
-            splitwords: an iterable of re.Pattern used to split words and isolate some part of them (freeze).
-            findborder: a function that find token boundaries.
-            findfreeze: a function that find token boundaries exceptions.
+            See quelquhui.French, all other args go there.
 
         Returns (None)
         """
 
-        self.splitspace = splitspace
-        self.splitpatterns = splitwords
-        self.findborder = findborder
-        self.findfreeze = findfreeze
+        fr = quelquhui.french.French(**kwargs)
+        self.splitspace = re.compile(r"(?<=[^ ]) ").split
+        self.splitpatterns = fr.itersplit
+        self.findborder = fr.findborder.finditer
+        self.findfreeze = fr.findexcept.finditer
 
     def itersplit(self, words):
         """Iteratively split a list of tokens using an Iterable of `re.Pattern`.
 
         Args:
-            words (Iterable[tuple]): an iterable of tuples like (False, 'je')
+            words: an iterable of tuples like (False, 'je').
 
         Returns (Iterable[tuple]): same structure as argument `words`.
         """
@@ -39,7 +32,10 @@ class QQHuiToquenizer:
         for fn in self.splitpatterns:
             search, split = fn.search, fn.split
             words = [
-                zip(split(i[0]), alternatefalsetrue())
+                zip(
+                    split(i[0]),
+                    quelquhui.itersplit.alternatefalsetrue(),
+                )
                 if i[1] is False and search(i[0])
                 else [i]
                 for i in words
@@ -132,7 +128,7 @@ class QQHuiToquenizer:
         Returns (list[str]): words tokenized with precision.
         """
 
-        words = zip(words, infinitefalse())
+        words = zip(words, quelquhui.itersplit.infinitefalse())
         words = self.itersplit(words)
         words = (
             [i[0]] if i[1] is True else self.findsplit(i[0])

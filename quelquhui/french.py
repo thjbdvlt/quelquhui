@@ -1,4 +1,5 @@
-from quelquhui.default import Chars, Words
+import quelquhui.chars
+import quelquhui.words
 import re
 
 
@@ -20,8 +21,8 @@ class French:
         regexemoticon: str = None,
     ):
         # import default chars and words
-        self.chars = Chars
-        self.words = Words
+        self.chars = quelquhui.chars
+        self.words = quelquhui.words
 
         # update chars and words with ones submitted in argument. and update words lists that depends on hyphen and apostrophes (inversion, elision).
         for i in chars:

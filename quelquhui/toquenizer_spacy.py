@@ -1,37 +1,20 @@
-from quelquhui.toquenizer_light import QQHuiToquenizer
+import quelquhui.toquenizer_light
 from spacy.tokens import Doc
-from spacy.vocab import Vocab
 
 
-class QQSpacyToquenizer(QQHuiToquenizer):
-    def __init__(
-        self,
-        splitspace,
-        splitwords,
-        findborder,
-        findfreeze,
-        vocab=None,
-        **kwargs,
-    ):
-        """Initiate a Tokenizer that creates Docs for spacy.
+class Toquenizer(quelquhui.toquenizer_light.Toquenizer):
+    def __init__(self, vocab, **kwargs):
+        """Initiate a Toquenizer to be used on raw text.
 
         Args:
-            vocab: the vocab of the loaded model.
-            splitspace: a function to split on spaces.
-            splitwords: an iterable of re.Pattern used to split words and isolate some part of them (freeze).
-            findborder: a function that find token boundaries.
-            findfreeze: a function that find token boundaries exceptions.
+            vocab: a spacy vocab (required to make Docs).
+            See quelquhui.French, all other args go there.
 
         Returns (None)
         """
 
-        if vocab is None:
-            vocab = Vocab(**kwargs)
         self.vocab = vocab
-        self.splitspace = splitspace
-        self.splitpatterns = splitwords
-        self.findborder = findborder
-        self.findfreeze = findfreeze
+        super().__init__(**kwargs)
 
     def findidxspaces(self, words):
         """Find spaces indexes.
@@ -55,13 +38,13 @@ class QQSpacyToquenizer(QQHuiToquenizer):
         Args:
             text (str): the text to tokenize.
 
-        Returns (list[str]): the text tokenized.
+        Returns (list[str]): the tokenized text.
         """
 
         nonspaces = self.splitspace(text)
         words = self.cut(nonspaces)
 
-        # créer une liste qui dit si les mots sont suivis ou non par des espaces.
+        # create a list that says if words are followed by spaces.
         spaces_after_idx = set(self.findidxspaces(nonspaces))
         spaces = []
         idx = 0

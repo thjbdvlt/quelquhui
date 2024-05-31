@@ -121,4 +121,4 @@ dependencies
 ------------
 
 - python3
-- optional: [spacy](https://spacy.io/api)
+- optionnel: [spacy](https://spacy.io/api)
