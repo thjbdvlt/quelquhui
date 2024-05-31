@@ -5,18 +5,20 @@ tokenizer for contemporary french analysis with spacy.
 
 | text                    | tokens                      |
 | ----------------------- | --------------------------- |
-| autre(s)                | `autre(s)`                  |
-| (autres)                | `(` `autres` `)`            |
-| (autre(s))              | `(` `autre(s)` `)`          |
+| peut-on                 | `peut` `-on`                |
+| prends-les              | `prends` `-les`             |
+| Villar-les-bois         | `Villar-les-bois`           |
+| lecteur-rice-x-s        | `lecteur-rice-x-s`          |
+| correcteur·rices        | `correcteur·rices`          |
 | mais.maintenant         | `mais` `.` `maintenant`     |
 | relecteur.rice.s        | `relecteur.rice.s`          |
 | 10.2                    | `10.2`                      |
 | p.10                    | `p.` `10`                   |
-| peut-on                 | `peut` `-on`                |
+| autre(s)                | `autre(s)`                  |
+| (autres)                | `(` `autres` `)`            |
+| (autre(s))              | `(` `autre(s)` `)`          |
 | www<area/>.on-tenk.com. | `www.on-tenk.com` `.`       |
 | oui..?                  | `oui` `..?`                 |
-| prends-les              | `prends` `-les`             |
-| Villar-les-bois         | `Villar-les-bois`           |
 | aujourd'hui             | `aujourd'hui`               |
 | c'est                   | `c'` `est`                  |
 | dedans/dehors           | `dedans` `/` `dehors`       |
@@ -91,19 +93,11 @@ qh = quelquhui.Toquenizer(
 ```
 
 
-why don't i just stick to spaCy's tokenizer ?
----------------------------------------------
-
-i wrote this tokenizer because spaCy's french tokenizer currently (2024-03-12) has (to me) two issues:
-
-1. it doesn't manage hyphen correctly and uses for that a very long list (15630) of exceptions (probably automatically generated) which is not only gigantic (full of proper names such as _Minaucourt-le-Mesnil-lès-Hurlus_, or _Beaujeu-Saint-Vallier-Pierrejux-et-Quitteur_), but also very incomplete, because it's a list of words containing a hyphen that must not be split into many tokens. i feel like it's the wrong way, because words containing hyphen that must be kept as a single token are virtually infinite in french: proper names (villages, people) and inclusive forms (_auteur-rice_). therefore, the list has no chance to be exhaustive. it results in an inconsistent tokenizer which will only work well on the data used to generate it: _quelques-uns_ will be one token while _quelques-unes_ will be 3 tokens (_quelques_, _-_, _unes_) because it's not in the huge list (which contains _logico-mathématique_ but not _socio-politique_). i feel like it's more practical to use as a rule not to split on hyphen (this sign is called in french _trait d'union_ -- _union trait_ --, it _unifies_), and as special cases the situations where it must split. because these cases, if they are more frequent, are also much less diverse: as said above, they all consists in verb-subject inversions where subject is a pronoun or one of a few adverb list, for a total of 21 words. a small regex and each of the 15000 and many more are easily handled.
-2. it doesn't manage correctly in-word parentheses, such as _(post)digital_ or _quelque(s) personne(s)_, producing results like `personne(s`, `)` where the opening parenthesis is a part of the token and the closing parethesis is another token.
-
 how it works
 ------------
 
 1. _split text on spaces._
-2. it re-splits using a few functions (looped) that produced _frozen_ tokens which won't be tokenized by next functions/steps (typically: urls, or text-emoji like `:happy:`, which may be hard to tokenized in cases like `(:happy:)` -- we don't want the regex looking for _emoticons_ to match `:)`: i need to defines rules to be applied in a specific order).
+2. it re-splits using a few functions (looped) that produced _frozen_ tokens which won't be tokenized by next functions/steps (typically: urls, or text-emoji like `:happy:`, which may be hard to tokenized in cases like `(:happy:)`; we don't want the regex looking for _emoticons_ to match `:)`: i need to defines rules to be applied in a specific order).
 2. for each resulting substring:
     1. *list characters on which words must be split*. typically: punctuation marks, such as comma or period. let's say they are then considered *token boundaries*.
     2. *list characters that must be kept together, even if they have been listed in step __2.i__*.
