@@ -1,8 +1,8 @@
-import quelquhui.toquenizer_light
+import quelquhui.light
 from spacy.tokens import Doc
 
 
-class Toquenizer(quelquhui.toquenizer_light.Toquenizer):
+class Toquenizer(quelquhui.light.Toquenizer):
     def __init__(self, vocab, **kwargs):
         """Initiate a Toquenizer to be used on raw text.
 

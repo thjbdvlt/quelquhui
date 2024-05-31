@@ -1,9 +1,9 @@
 try:
-    import quelquhui.toquenizer_spacy
+    import quelquhui.toquenizer
 
-    Toquenizer = quelquhui.toquenizer_spacy.Toquenizer
+    Toquenizer = quelquhui.toquenizer.Toquenizer
 
 except ModuleNotFoundError:
-    import quelquhui.toquenizer_light
+    import quelquhui.light
 
-    Toquenizer = quelquhui.toquenizer_light.Toquenizer
+    Toquenizer = quelquhui.light.Toquenizer

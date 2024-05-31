@@ -37,12 +37,12 @@ nlp = spacy.load('fr_core_news_sm')
 nlp.tokenizer = quelquhui.Toquenizer(nlp.vocab)
 ```
 
-use as a independant tokenizer:
+use as a independant tokenizer (with no dependencies):
 
 ```python
 import quelquhui
 
-qh = quelquhui.Toquenizer(method='quelquhui')
+qh = quelquhui.light.Toquenizer()
 doc = qh("la machine à (b)rouiller le temps s'est peut-être dérailler...")
 ```
 
