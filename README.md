@@ -1,7 +1,7 @@
 quelqu'hui
 ==========
 
-tokenizer for contemporary french.
+tokenizer for contemporary french analysis with spacy.
 
 | text                    | tokens                      |
 | ----------------------- | --------------------------- |

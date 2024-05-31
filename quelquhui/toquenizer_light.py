@@ -1,23 +1,39 @@
-from typing import Callable, Iterable
 from quelquhui.itersplit import alternatefalsetrue, infinitefalse
 
 
 class QQHuiToquenizer:
     def __init__(
         self,
-        splitspace: Callable,
-        splitwords: Iterable[Callable],
-        findborder: Callable,
-        findfreeze: Callable,
+        splitspace,
+        splitwords,
+        findborder,
+        findfreeze,
         **kwargs,
     ):
+        """Initiate a Toquenizer to be used on raw text.
+
+        Args:
+            splitspace: a function to split on spaces.
+            splitwords: an iterable of re.Pattern used to split words and isolate some part of them (freeze).
+            findborder: a function that find token boundaries.
+            findfreeze: a function that find token boundaries exceptions.
+
+        Returns (None)
+        """
+
         self.splitspace = splitspace
         self.splitpatterns = splitwords
         self.findborder = findborder
         self.findfreeze = findfreeze
 
-    def itersplit(self, words: Iterable[tuple]) -> Iterable[str]:
-        """iteratively split a list of tokens using an Iterable of `re.Pattern`."""
+    def itersplit(self, words):
+        """Iteratively split a list of tokens using an Iterable of `re.Pattern`.
+
+        Args:
+            words (Iterable[tuple]): an iterable of tuples like (False, 'je')
+
+        Returns (Iterable[tuple]): same structure as argument `words`.
+        """
 
         # itération sur les fonctions de splitting. l'ordre est important: une fois qu'un élément extrait est extrait comme étant un token par l'une des fonctions, les fonctions suivantes ne le modifieront plus (le token est gelé).
         for fn in self.splitpatterns:
@@ -34,8 +50,17 @@ class QQHuiToquenizer:
             ]
         return words
 
-    def findsplit(self, substring: str) -> list[str]:
-        """split a substring into many using two functions: one that find potential boundaries, and another one that find some exceptions that will be substract for the boundaries."""
+    def findsplit(self, substring) -> list[str]:
+        """Split a substring into many.
+
+        Args:
+            substring (str): a substring of the text being tokenized.
+
+        Returns (list[str]): a list of sub-substrings.
+
+        Note:
+            It uses two functions: one that find potential boundaries, and another one that find some exceptions that will be substract for the boundaries.
+        """
 
         # find borders, typically: punctuation.
         s = set().union(
@@ -68,10 +93,14 @@ class QQHuiToquenizer:
 
         return words
 
-    def findidxspaces(self, words: list[str]) -> list[int]:
-        """find indexes of spaces.
+    def findidxspaces(self, words):
+        """Find indexes of spaces.
 
-        (to be able to keep track of position of each token in the text.)
+        Args:
+            words (list[str]): list of words.
+
+        Note:
+            Used to keep trace of position of each token in the text.
         """
 
         spaces = []
@@ -81,14 +110,27 @@ class QQHuiToquenizer:
             spaces.append(n)
         return spaces
 
-    def tokenize(self, text: str, **kwargs) -> list[str]:
-        """tokenize a text"""
+    def tokenize(self, text, **kwargs):
+        """Tokenize a text.
+
+        Args:
+            text (str): the text to tokenize.
+
+        Returns (list[str]): the text tokenized.
+        """
+
         nonspace = self.splitspace(text)
         words = self.cut(nonspace)
         return words
 
-    def cut(self, words) -> list[str]:
-        """tokenize more.."""
+    def cut(self, words):
+        """Tokenize a text more precisely.
+
+        Args:
+            words (list[str]): words pre-tokenized on spaces.
+
+        Returns (list[str]): words tokenized with precision.
+        """
 
         words = zip(words, infinitefalse())
         words = self.itersplit(words)
@@ -100,6 +142,12 @@ class QQHuiToquenizer:
         return words
 
     def __call__(self, text: str, **kwargs) -> list[str]:
-        """tokenize a text with method `Toquenizer.tokenize(text)`"""
+        """Tokenize a text (call self.tokenize).
+
+        Args:
+            text (str): the text to be tokenized.
+
+        Returns (list[str]): the tokenized text.
+        """
 
         return self.tokenize(text, **kwargs)
