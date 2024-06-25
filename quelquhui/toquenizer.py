@@ -1,5 +1,8 @@
 import quelquhui.light
+from spacy import util
 from spacy.tokens import Doc
+from spacy import registry
+import json
 
 
 class Toquenizer(quelquhui.light.Toquenizer):
@@ -64,3 +67,21 @@ class Toquenizer(quelquhui.light.Toquenizer):
             )
             assert doc.text == text
             return doc
+
+    def to_disk(self, path, *, exclude=tuple()):
+        path = util.ensure_path(path)
+        with path.open('w') as f:
+            json.dump(fp=f, obj=self._config)
+
+    def from_disk(self, path, *, exclude=tuple()):
+        with path.open('r') as f:
+            data = json.load(f)
+        super().__init__(**data)
+        return self
+
+
+@registry.tokenizers("quelquhui_tokenizer")
+def create_quelquhui_tokenizer():
+    def make_toquenizer(nlp):
+        return Toquenizer(nlp.vocab)
+    return make_toquenizer

@@ -18,6 +18,7 @@ class Toquenizer:
         self.splitpatterns = fr.itersplit
         self.findborder = fr.findborder.finditer
         self.findfreeze = fr.findexcept.finditer
+        self._config = kwargs
 
     def itersplit(self, words):
         """Iteratively split a list of tokens using an Iterable of `re.Pattern`.
