@@ -39,6 +39,14 @@ nlp = spacy.load('fr_core_news_sm')
 nlp.tokenizer = quelquhui.Toquenizer(nlp.vocab)
 ```
 
+if you save the pipeline and want to load it back:
+
+```python
+nlp2 = spacy.load("./model_output", config={
+    "nlp": {"tokenizer": {"@tokenizers": "quelquhui_tokenizer"}}
+})
+```
+
 use as a independant tokenizer (with no dependencies):
 
 ```python
