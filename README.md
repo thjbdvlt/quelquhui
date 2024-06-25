@@ -1,7 +1,7 @@
 quelqu'hui
 ==========
 
-tokenizer for contemporary french (designed to be used with spacy).
+tokenizer for contemporary french (for [spacy](https://spacy.io/api)).
 
 | text                    | tokens                      |
 | ----------------------- | --------------------------- |
