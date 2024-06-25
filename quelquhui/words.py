@@ -47,9 +47,12 @@ INVERSION = [
     "ce",
     "y",
     # les pronoms 'compléments'. p.ex. "écoutons-les"
-    r"la(?![{hyphen}])",
-    r"le(?![{hyphen}])",
-    r"les(?![{hyphen}])",
+    # r"la(?![{hyphen}])",
+    # r"le(?![{hyphen}])",
+    # r"les(?![{hyphen}])",
+    "la",
+    "le",
+    "les",
     # deux pronoms objet personnels élisés, avec un regex qui permet d'ajouter une condition pour les prendre en compte. je les ajoute pour des cas un peu plus compliqués qui mêlent élision et tiret d'inversion. p.ex. "a-t-il", "pourra-t'on"
     r"t[{hyphen}]??[{apostrophe}]?",
     r"m[{apostrophe}]?",  # p.ex. "dis-m'en plus"
@@ -79,7 +82,8 @@ ELISION = [
 
 SUFF_FEMININE = [
     "e",  # chacune
-    "le",  # intellectuelle
+    # j'enlève 'le' pour l'instant, car il faudrait dire seulement pour · et ., sinon "prends-le" va pas être tokenizé correctement
+    # "le",  # intellectuelle
     "lle",  # ?
     "te",  # toute
     "tte",  # ?
