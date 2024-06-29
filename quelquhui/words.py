@@ -57,7 +57,8 @@ INVERSION = [
     r"t[{hyphen}]??[{apostrophe}]?",
     r"m[{apostrophe}]?",  # p.ex. "dis-m'en plus"
     # également deux adverbes
-    "là",
+    "là",  # celle-là
+    "ci",  # celle-ci
     "ici",
 ]
 
