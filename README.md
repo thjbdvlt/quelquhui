@@ -12,8 +12,6 @@ tokenizer for contemporary french (for [spacy](https://spacy.io/api)).
 | correcteur·rices        | `correcteur·rices`          |
 | mais.maintenant         | `mais` `.` `maintenant`     |
 | relecteur.rice.s        | `relecteur.rice.s`          |
-| 10.2                    | `10.2`                      |
-| p.10                    | `p.` `10`                   |
 | autre(s)                | `autre(s)`                  |
 | (autres)                | `(` `autres` `)`            |
 | (autre(s))              | `(` `autre(s)` `)`          |

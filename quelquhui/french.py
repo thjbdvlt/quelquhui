@@ -45,7 +45,8 @@ class French:
         )
 
         # plus another one that could be optional (not for now) because i think it's not an obvious choice: it's to tokenize "12km" as two words [12, km] and 2h as [2, h]. it may lead to annoying results when tokenizing texts that may have words containing digits (but it's unusual, that's why the default behaviour is to split "3h" into two tokens, like in "trois heures").
-        self.number = r"(?<!\w)\d+[\d\W]*"
+        # self.number = r"(?<!\w)\d+[\d\W]*"
+        self.number = r"(?<!\w)\d+"
 
         # other are not optional because they defines the syntax of common written french.
         self.newline = r"[\n\r]+"
