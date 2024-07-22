@@ -129,7 +129,7 @@ class French:
         """match single letter abbreviations (any)."""
 
         c = self.chars
-        return rf"^[{c.ALPHA}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
+        return rf"^[{c.ALPHA_NOT_A}]{c.PERIOD}|^(?<=[^\w{c.PERIOD}])[{c.ALPHA}]{c.PERIOD}"
 
     def _genregex_abbrevmultipleletters(self, abbrev) -> str:
         """match longer abbreviations (from list of abbreviations)."""

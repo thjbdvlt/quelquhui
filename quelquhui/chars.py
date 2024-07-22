@@ -29,3 +29,4 @@ EXCLAM = re.escape("!")
 ALPHA_LOWER = "a-zà-ÿ"
 ALPHA_UPPER = ALPHA_LOWER.upper()
 ALPHA = ALPHA_LOWER + ALPHA_UPPER
+ALPHA_NOT_A = "b-zB-Z"
