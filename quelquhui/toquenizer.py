@@ -70,11 +70,11 @@ class Toquenizer(quelquhui.light.Toquenizer):
 
     def to_disk(self, path, *, exclude=tuple()):
         path = util.ensure_path(path)
-        with path.open('w') as f:
+        with path.open("w") as f:
             json.dump(fp=f, obj=self._config)
 
     def from_disk(self, path, *, exclude=tuple()):
-        with path.open('r') as f:
+        with path.open("r") as f:
             data = json.load(f)
         super().__init__(**data)
         return self
@@ -84,4 +84,5 @@ class Toquenizer(quelquhui.light.Toquenizer):
 def create_quelquhui_tokenizer():
     def make_toquenizer(nlp):
         return Toquenizer(nlp.vocab)
+
     return make_toquenizer
