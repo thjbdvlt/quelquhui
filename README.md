@@ -58,9 +58,7 @@ installation
 ------------
 
 ```bash
-git clone https://github.com/thjbdvlt/quelquhui quelquhui
-cd quelquhui
-pip install .
+pip install git+https://github.com/thjbdvlt/quelquhui
 ```
 
 configuration
@@ -87,8 +85,8 @@ qh = quelquhui.Toquenizer(
         # `quelquhui.default.Chars.__dict__`
     }
     words = {
-        "ELISION": ["j", "s", "c"], # ...
-        "INVERSION": ["je", "tu", "on"], # ...
+        "ELISION": ["j", "s", "jusqu"], # ...
+        "INVERSION": ["on", "y", "ci"], # ...
         "SUFF_FEMININE": ["e", "rice", "ère"], # ...
         "SUFF_NONBINARY": ["x"],
         "SUFF_PLURAL": ["s", "x"],
