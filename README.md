@@ -51,7 +51,7 @@ use as a independant tokenizer (with no dependencies):
 import quelquhui
 
 qh = quelquhui.light.Toquenizer()
-doc = qh("la machine à (b)rouiller le temps s'est peut-être dérailler...")
+doc = qh("la machine à (b)rouiller le temps s'est peut-être déraillée...")
 ```
 
 installation
@@ -119,4 +119,4 @@ dependencies
 ------------
 
 - python3
-- optionnel: [spacy](https://spacy.io/api)
+- optional: [spacy](https://spacy.io/api)

@@ -86,7 +86,7 @@ SUFF_FEMININE = [
     # j'enlève 'le' pour l'instant, car il faudrait dire seulement pour · et ., sinon "prends-le" va pas être tokenizé correctement
     # "le",  # intellectuelle
     "lle",  # ?
-    "le",  # ?
+    "le",  # ? TODO: remove?
     "te",  # toute
     "tte",  # ?
     "euse",  # chercheur.euse
