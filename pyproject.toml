@@ -14,6 +14,9 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/thjbdvlt/quelquhui"
 
+[project.entry-points.spacy_tokenizers]
+quelquhui_tokenizer = "quelquhui.toquenizer:create_quelquhui_tokenizer"
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
